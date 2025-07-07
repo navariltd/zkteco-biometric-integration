@@ -8,7 +8,7 @@ repos:
     rev: v5.0.0
     hooks:
       - id: trailing-whitespace
-        files: "navari_zkteco_biometric_integration.*"
+        files: "zkteco_biometric_integration.*"
         exclude: ".*json$|.*txt$|.*csv|.*md|.*svg"
       - id: check-merge-conflict
       - id: check-ast
@@ -38,11 +38,11 @@ repos:
         # Ignore any files that might contain jinja / bundles
         exclude: |
             (?x)^(
-                navari_zkteco_biometric_integration/public/dist/.*|
+                zkteco_biometric_integration/public/dist/.*|
                 .*node_modules.*|
                 .*boilerplate.*|
-                navari_zkteco_biometric_integration/templates/includes/.*|
-                navari_zkteco_biometric_integration/public/js/lib/.*
+                zkteco_biometric_integration/templates/includes/.*|
+                zkteco_biometric_integration/public/js/lib/.*
             )$
 
 
@@ -55,12 +55,12 @@ repos:
         # Ignore any files that might contain jinja / bundles
         exclude: |
             (?x)^(
-                navari_zkteco_biometric_integration/public/dist/.*|
+                zkteco_biometric_integration/public/dist/.*|
                 cypress/.*|
                 .*node_modules.*|
                 .*boilerplate.*|
-                navari_zkteco_biometric_integration/templates/includes/.*|
-                navari_zkteco_biometric_integration/public/js/lib/.*
+                zkteco_biometric_integration/templates/includes/.*|
+                zkteco_biometric_integration/public/js/lib/.*
             )$
 
 ci:

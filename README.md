@@ -1,3 +1,3 @@
-### Navari Zkteco Biometric Integration
+### Zkteco Biometric Integration
 
 
