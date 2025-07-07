@@ -1,9 +1,9 @@
 [project]
-name = "navari_zkteco_biometric_integration"
+name = "zkteco_biometric_integration"
 authors = [
     { name = "Navari Limited", email = "navarisolutions@gmail.com"}
 ]
-description = "bench new-app navari_zkteco_biometric_integration"
+description = "bench new-app zkteco_biometric_integration"
 requires-python = ">=3.10"
 readme = "README.md"
 dynamic = ["version"]
