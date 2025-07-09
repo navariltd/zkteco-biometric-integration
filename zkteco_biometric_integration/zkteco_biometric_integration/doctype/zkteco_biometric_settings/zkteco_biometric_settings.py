@@ -9,7 +9,7 @@ from frappe.model.document import Document
 class ZKTecoBiometricSettings(Document):
 	def before_save(self):
 		self.token = self.generate_token()
-		frappe.msgprint("Token generated succeesfully")
+		frappe.msgprint("Token generated succesfully")
 
 	def generate_token(self):
 		headers = {"Content-Type": "application/json"}
@@ -23,7 +23,6 @@ class ZKTecoBiometricSettings(Document):
 			response = requests.post(endpoint_url, payload, headers)
 
 			if response.status_code == 200:
-				print("jwt token successful", response.text)
 				return response.json().get("token")
 			else:
 				frappe.throw(f"Problem generating Token: {response.json().get("detail")}")
