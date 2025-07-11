@@ -1,4 +1,7 @@
+import time
+
 import frappe
+import jwt
 import requests
 
 from zkteco_biometric_integration.zkteco_biometric_integration.doctype.zkteco_biometric_settings.zkteco_biometric_settings import (
@@ -27,14 +30,16 @@ def get_transactions(username):
 		frappe.throw("Problem generating transactions", str(e))
 
 
-@frappe.whitelist(allow_guest=True)
 def get_configs(username):
 	settings_doctype = "ZKTeco Biometric Settings"
 	token, url = frappe.db.get_value(settings_doctype, username, ["token", "url"])
 
-	if not token:
-		token = ZKTecoBiometricSettings.generate_token()
+	token_payload = jwt.decode(token, options={"verify_signature": False})
+
+	if not token or token_payload.get("exp") < time.time():
+		doctype = frappe.get_doc(settings_doctype, username)
+		token = doctype.generate_token(settings_doctype)
 		frappe.db.set_value(settings_doctype, username, "token", token)
-		return token
+		return token, url
 
 	return token, url

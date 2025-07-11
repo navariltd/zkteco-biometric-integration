@@ -11,13 +11,19 @@ class ZKTecoBiometricSettings(Document):
 		self.token = self.generate_token()
 		frappe.msgprint("Token generated succesfully")
 
-	def generate_token(self):
+	def generate_token(self, doctype=None):
 		headers = {"Content-Type": "application/json"}
 
-		payload = {"username": self.username, "password": self.password}
 		self.url_path = "/jwt-api-token-auth/"
-
 		endpoint_url = f"{self.url}{self.url_path}"
+
+		if doctype:
+			doc = frappe.get_doc(doctype, self.username)
+			password = doc.get_password("password")
+		else:
+			password = self.password
+
+		payload = {"username": self.username, "password": password}
 
 		try:
 			response = requests.post(endpoint_url, payload, headers)
