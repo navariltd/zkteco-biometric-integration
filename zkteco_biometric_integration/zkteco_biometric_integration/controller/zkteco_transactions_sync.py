@@ -74,4 +74,4 @@ def handle_employee_checkin(username):
 				}
 			)
 
-		employee_checkin.insert()
+		employee_checkin.insert(ignore_permissions=True)
