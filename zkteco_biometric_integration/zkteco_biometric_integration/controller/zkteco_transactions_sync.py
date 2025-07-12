@@ -54,13 +54,24 @@ def handle_employee_checkin(username):
 		log_type = "IN" if transaction["punch_state_display"] == "Check-In" else "OUT"
 		punch_time = transaction.get("punch_time")
 
-		employee_checkin = frappe.get_doc(
+		exists = frappe.db.exists(
+			"Employee Checkin",
 			{
 				"doctype": "Employee Checkin",
 				"employee": employee,
 				"log_type": log_type,
 				"time": punch_time,
-			}
+			},
 		)
 
-		employee_checkin.save()
+		if not exists:
+			employee_checkin = frappe.get_doc(
+				{
+					"doctype": "Employee Checkin",
+					"employee": employee,
+					"log_type": log_type,
+					"time": punch_time,
+				}
+			)
+
+		employee_checkin.insert()
