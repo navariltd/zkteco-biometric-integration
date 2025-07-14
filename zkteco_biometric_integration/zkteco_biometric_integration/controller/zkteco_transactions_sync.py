@@ -48,6 +48,7 @@ def get_configs(username):
 @frappe.whitelist(allow_guest=True)
 def handle_employee_checkin(username):
 	transactions = get_transactions(username)
+	frappe.set_user(f"zkteco_biometric_{username}")
 
 	for transaction in transactions:
 		employee = transaction.get("emp_code")
