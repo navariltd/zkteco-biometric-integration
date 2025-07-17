@@ -11,7 +11,10 @@
   "column_break_tvyy",
   "url",
   "section_break_vxwc",
-  "token"
+  "token",
+  "frequency_settings_section",
+  "fetch_frequency",
+  "cron_expression"
  ],
  "fields": [
   {
@@ -43,12 +46,29 @@
    "fieldtype": "Text",
    "label": "Token",
    "read_only": 1
+  },
+  {
+   "fieldname": "frequency_settings_section",
+   "fieldtype": "Section Break",
+   "label": "Frequency Settings"
+  },
+  {
+   "fieldname": "fetch_frequency",
+   "fieldtype": "Select",
+   "label": "Fetch Frequency",
+   "options": "All\nHourly\nHourly Long\nHourly Maintenance\nDaily\nDaily Long\nDaily Maintenance\nWeekly\nWeekly Long\nMonthly\nMonthly Long\nCron\nYearl"
+  },
+  {
+   "depends_on": "eval:doc.fetch_frequency===\"Cron\";",
+   "fieldname": "cron_expression",
+   "fieldtype": "Data",
+   "label": "Cron Expression"
   }
  ],
  "grid_page_length": 50,
  "index_web_pages_for_search": 1,
  "links": [],
- "modified": "2025-07-09 13:40:18.328323",
+ "modified": "2025-07-17 14:13:19.536747",
  "modified_by": "Administrator",
  "module": "Zkteco Biometric Integration",
  "name": "ZKTeco Biometric Settings",
