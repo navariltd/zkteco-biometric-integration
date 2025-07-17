@@ -14,7 +14,9 @@
   "token",
   "frequency_settings_section",
   "fetch_frequency",
-  "cron_expression"
+  "cron_expression",
+  "column_break_jdsq",
+  "enable"
  ],
  "fields": [
   {
@@ -63,12 +65,22 @@
    "fieldname": "cron_expression",
    "fieldtype": "Data",
    "label": "Cron Expression"
+  },
+  {
+   "fieldname": "column_break_jdsq",
+   "fieldtype": "Column Break"
+  },
+  {
+   "default": "0",
+   "fieldname": "enable",
+   "fieldtype": "Check",
+   "label": "Enable"
   }
  ],
  "grid_page_length": 50,
  "index_web_pages_for_search": 1,
  "links": [],
- "modified": "2025-07-17 14:13:19.536747",
+ "modified": "2025-07-17 16:10:37.712968",
  "modified_by": "Administrator",
  "module": "Zkteco Biometric Integration",
  "name": "ZKTeco Biometric Settings",
