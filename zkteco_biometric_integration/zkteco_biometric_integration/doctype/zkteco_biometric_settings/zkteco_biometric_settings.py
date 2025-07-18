@@ -7,9 +7,12 @@ from frappe.model.document import Document
 
 
 class ZKTecoBiometricSettings(Document):
-	def before_save(self):
+	def before_insert(self):
 		self.token = self.generate_token()
 		frappe.msgprint("Token generated succesfully")
+
+	def before_save(self):
+		self.manage_checkin_scheduler()
 
 	def generate_token(self, doctype=None):
 		headers = {"Content-Type": "application/json"}

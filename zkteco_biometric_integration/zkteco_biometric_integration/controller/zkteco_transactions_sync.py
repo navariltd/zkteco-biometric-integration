@@ -45,36 +45,40 @@ def get_configs(username):
 	return token, url
 
 
-@frappe.whitelist(allow_guest=True)
-def handle_employee_checkin(username):
-	transactions = get_transactions(username)
-	frappe.set_user(f"zkteco_biometric_{username}")
+@frappe.whitelist()
+def handle_employee_checkin():
+	biometric_settings = frappe.get_all(
+		"ZKTeco Biometric Settings", filters={"enable": 1}, fields=["username"]
+	)
 
-	for transaction in transactions:
-		employee = transaction.get("emp_code")
-		log_type = "IN" if transaction["punch_state_display"] == "Check-In" else "OUT"
-		punch_time = transaction.get("punch_time")
+	for setting in biometric_settings:
+		username = setting.username
 
-		exists = frappe.db.exists(
-			"Employee Checkin",
-			{
-				"doctype": "Employee Checkin",
-				"employee": employee,
-				"log_type": log_type,
-				"time": punch_time,
-			},
-		)
+		transactions = get_transactions(username)
+		frappe.set_user(f"zkteco_biometric_{username}")
 
-		if not exists:
-			employee_checkin = frappe.get_doc(
+		for transaction in transactions:
+			employee = transaction.get("emp_code")
+			log_type = "IN" if transaction["punch_state_display"] == "Check-In" else "OUT"
+			punch_time = transaction.get("punch_time")
+
+			exists = frappe.db.exists(
+				"Employee Checkin",
 				{
-					"doctype": "Employee Checkin",
 					"employee": employee,
 					"log_type": log_type,
 					"time": punch_time,
-				}
+				},
 			)
 
-		employee_checkin.insert(ignore_permissions=True)
+			if not exists:
+				frappe.get_doc(
+					{
+						"doctype": "Employee Checkin",
+						"employee": employee,
+						"log_type": log_type,
+						"time": punch_time,
+					}
+				).insert(ignore_permissions=True)
 
 	frappe.db.commit()
