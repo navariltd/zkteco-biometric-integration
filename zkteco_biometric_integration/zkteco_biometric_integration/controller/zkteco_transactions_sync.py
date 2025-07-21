@@ -27,6 +27,7 @@ def get_transactions(username):
 			frappe.throw(f"Problem generating transactions: {response.json().get("detail")}")
 
 	except Exception as e:
+		frappe.log_error(frappe.get_traceback(), str(e))
 		frappe.throw("Problem generating transactions", str(e))
 
 
