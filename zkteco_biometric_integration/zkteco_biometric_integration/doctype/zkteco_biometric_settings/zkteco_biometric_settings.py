@@ -37,6 +37,7 @@ class ZKTecoBiometricSettings(Document):
 				frappe.throw(f"Problem generating Token: {response.json().get("detail")}")
 
 		except Exception as e:
+			frappe.log_error(frappe.get_traceback(), str(e))
 			frappe.throw("Problem generating Token", str(e))
 
 	def manage_checkin_scheduler(self):
