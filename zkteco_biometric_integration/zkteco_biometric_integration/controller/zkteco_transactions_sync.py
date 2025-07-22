@@ -4,10 +4,6 @@ import frappe
 import jwt
 import requests
 
-from zkteco_biometric_integration.zkteco_biometric_integration.doctype.zkteco_biometric_settings.zkteco_biometric_settings import (
-	ZKTecoBiometricSettings,
-)
-
 
 @frappe.whitelist(allow_guest=True)
 def get_transactions(username):
@@ -32,7 +28,7 @@ def get_transactions(username):
 
 
 def get_configs(username):
-	settings_doctype = "ZKTeco Biometric Settings"
+	settings_doctype = "NL ZKTeco Biometric Settings"
 	token, url = frappe.db.get_value(settings_doctype, username, ["token", "url"])
 
 	token_payload = jwt.decode(token, options={"verify_signature": False})
@@ -49,7 +45,7 @@ def get_configs(username):
 @frappe.whitelist()
 def handle_employee_checkin():
 	biometric_settings = frappe.get_all(
-		"ZKTeco Biometric Settings", filters={"enable": 1}, fields=["username"]
+		"NL ZKTeco Biometric Settings", filters={"enable": 1}, fields=["username"]
 	)
 
 	for setting in biometric_settings:
