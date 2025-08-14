@@ -6,7 +6,7 @@ import requests
 from frappe.model.document import Document
 
 
-class ZKTecoBiometricSettings(Document):
+class NLZKTecoBiometricSettings(Document):
 	def before_insert(self):
 		self.token = self.generate_token()
 		frappe.msgprint("Token generated succesfully")
