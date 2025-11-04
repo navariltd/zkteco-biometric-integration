@@ -28,16 +28,8 @@ def get_transactions(username):
 
 
 def get_configs(username):
-	settings_doctype = "NL ZKTeco Biometric Settings"
-	token, url = frappe.db.get_value(settings_doctype, username, ["token", "url"])
-
-	token_payload = jwt.decode(token, options={"verify_signature": False})
-
-	if not token or token_payload.get("exp") < time.time():
-		doctype = frappe.get_doc(settings_doctype, username)
-		token = doctype.generate_token(settings_doctype)
-		frappe.db.set_value(settings_doctype, username, "token", token)
-		return token, url
+	settings = frappe.get_doc("NL ZKTeco Biometric Settings", username)
+	token, url = settings.get_settings()
 
 	return token, url
 
@@ -52,30 +44,40 @@ def handle_employee_checkin():
 		username = setting.username
 
 		transactions = get_transactions(username)
-		frappe.set_user(f"zkteco_biometric_{username}")
 
-		for transaction in transactions:
-			employee = transaction.get("emp_code")
-			log_type = "IN" if transaction["punch_state_display"] == "Check-In" else "OUT"
-			punch_time = transaction.get("punch_time")
+		try:
+			frappe.set_user(f"zkteco_biometric_{username}")
 
-			exists = frappe.db.exists(
-				"Employee Checkin",
-				{
-					"employee": employee,
-					"log_type": log_type,
-					"time": punch_time,
-				},
-			)
+			for transaction in transactions:
+				employee = transaction.get("emp_code")
+				if not frappe.db.exists("Employee", employee):
+					return
+				log_type = "IN" if transaction["punch_state_display"] == "Check-In" else "OUT"
+				punch_time = transaction.get("punch_time")
 
-			if not exists:
-				frappe.get_doc(
+				exists = frappe.db.exists(
+					"Employee Checkin",
 					{
-						"doctype": "Employee Checkin",
 						"employee": employee,
 						"log_type": log_type,
 						"time": punch_time,
-					}
-				).insert(ignore_permissions=True)
+					},
+				)
 
-	frappe.db.commit()
+				if not exists:
+					frappe.get_doc(
+						{
+							"doctype": "Employee Checkin",
+							"employee": employee,
+							"log_type": log_type,
+							"time": punch_time,
+						}
+					).insert(ignore_permissions=True)
+
+			frappe.db.commit()
+		except Exception as e:
+			frappe.db.rollback()
+			frappe.log_error(frappe.get_traceback(), str(e))
+			frappe.throw("Problem handling employee check-in", str(e))
+		finally:
+			frappe.set_user("Guest")
