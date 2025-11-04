@@ -16,7 +16,7 @@
   "fetch_frequency",
   "cron_expression",
   "column_break_jdsq",
-  "enable"
+  "enabled"
  ],
  "fields": [
   {
@@ -72,15 +72,15 @@
   },
   {
    "default": "0",
-   "fieldname": "enable",
+   "fieldname": "enabled",
    "fieldtype": "Check",
-   "label": "Enable"
+   "label": "Enabled"
   }
  ],
  "grid_page_length": 50,
  "index_web_pages_for_search": 1,
  "links": [],
- "modified": "2025-07-17 16:10:37.712968",
+ "modified": "2025-11-04 15:14:32.293993",
  "modified_by": "Administrator",
  "module": "Zkteco Biometric Integration",
  "name": "NL ZKTeco Biometric Settings",
