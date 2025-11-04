@@ -1,7 +1,10 @@
 # Copyright (c) 2025, Navari Limited and contributors
 # For license information, please see license.txt
 
+import time
+
 import frappe
+import jwt
 import requests
 from frappe.model.document import Document
 
@@ -11,7 +14,7 @@ class NLZKTecoBiometricSettings(Document):
 		self.token = self.generate_token()
 		frappe.msgprint("Token generated succesfully")
 
-	def before_save(self):
+	def validate(self):
 		self.manage_checkin_scheduler()
 
 	def generate_token(self, doctype=None):
@@ -40,35 +43,47 @@ class NLZKTecoBiometricSettings(Document):
 			frappe.log_error(frappe.get_traceback(), str(e))
 			frappe.throw("Problem generating Token", str(e))
 
+	def get_settings(self):
+		token_payload = jwt.decode(self.token, options={"verify_signature": False})
+
+		if not self.token or token_payload.get("exp") < time.time():
+			self.token = self.generate_token()
+
+		return self.token, self.url
+
 	def manage_checkin_scheduler(self):
 		method = "zkteco_biometric_integration.zkteco_biometric_integration.controller.zkteco_transactions_sync.handle_employee_checkin"
 
-		exists = frappe.db.exists("Scheduled Job Type", {"method": method})
+		job = frappe.db.exists("Scheduled Job Type", {"method": method})
 
-		if self.enable:
-			if not exists:
-				scheduled_job = frappe.get_doc(
+		try:
+			if self.enabled:
+				if not job:
+					scheduled_job = frappe.get_doc(
+						{
+							"doctype": "Scheduled Job Type",
+							"method": method,
+							"frequency": self.fetch_frequency,
+							"stopped": 0,
+							"cron_format": (self.cron_expression if self.fetch_frequency == "Cron" else None),
+						}
+					)
+					scheduled_job.insert(ignore_permissions=True)
+
+				frappe.db.set_value(
+					"Scheduled Job Type",
+					{"method": method},
 					{
-						"doctype": "Scheduled Job Type",
-						"method": method,
-						"frequency": self.fetch_frequency,
 						"stopped": 0,
-						"cron_format": self.cron_expression if self.fetch_frequency == "Cron" else None,
-					}
+						"frequency": self.fetch_frequency,
+						"cron_format": (self.cron_expression if self.fetch_frequency == "Cron" else None),
+					},
 				)
-				scheduled_job.insert()
 
-			frappe.db.set_value(
-				"Scheduled Job Type",
-				{"method": method},
-				{
-					"stopped": 0,
-					"frequency": self.fetch_frequency,
-					"cron_format": self.cron_expression if self.fetch_frequency == "Cron" else None,
-				},
-			)
+			else:
+				if job:
+					frappe.delete_doc("Scheduled Job Type", job)
 
-		else:
-			if exists:
-				frappe.db.set_value("Scheduled Job Type", {"method": method}, "stopped", 1)
-				frappe.delete_doc("Scheduled Job Type", exists)
+		except Exception as e:
+			frappe.log_error(frappe.get_traceback(), str(e))
+			frappe.throw("Problem managing check-in scheduler", str(e))
