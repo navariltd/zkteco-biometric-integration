@@ -82,7 +82,6 @@ class NLZKTecoBiometricSettings(Document):
 
 			else:
 				if job:
-					frappe.db.set_value("Scheduled Job Type", {"method": method}, "stopped", 1)
 					frappe.delete_doc("Scheduled Job Type", job)
 
 		except Exception as e:
