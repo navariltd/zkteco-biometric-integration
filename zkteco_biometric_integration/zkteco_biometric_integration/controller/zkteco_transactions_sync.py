@@ -20,7 +20,7 @@ def get_transactions(username):
 		if response.status_code == 200:
 			return response.json().get("data")
 		else:
-			frappe.throw(f"Problem generating transactions: {response.json().get("detail")}")
+			frappe.throw(f"Error generating transactions: {response.json().get("detail")}")
 
 	except Exception as e:
 		frappe.log_error(frappe.get_traceback(), str(e))
@@ -29,6 +29,12 @@ def get_transactions(username):
 
 def get_configs(username):
 	settings = frappe.get_doc("NL ZKTeco Biometric Settings", username)
+	if not settings:
+		frappe.throw(f"Biometric Settings with {username} not found")
+		frappe.log_error(
+			f"Biometric Settings with {username} not found",
+			"ZKTeco Biometric Integration",
+		)
 	token, url = settings.get_settings()
 
 	return token, url
@@ -39,6 +45,9 @@ def handle_employee_checkin():
 	biometric_settings = frappe.get_all(
 		"NL ZKTeco Biometric Settings", filters={"enable": 1}, fields=["username"]
 	)
+	if not biometric_settings:
+		frappe.throw("No Biometric Settings found")
+		frappe.log_error("No Biometric Settings found", "ZKTeco Biometric Integration")
 
 	for setting in biometric_settings:
 		username = setting.username
