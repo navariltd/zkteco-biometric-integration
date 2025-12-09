@@ -39,6 +39,9 @@ def handle_employee_checkin():
 	biometric_settings = frappe.get_all(
 		"NL ZKTeco Biometric Settings", filters={"enable": 1}, fields=["username"]
 	)
+	if not biometric_settings:
+		frappe.throw("No Biometric Settings found")
+		frappe.log_error("No Biometric Settings found", "ZKTeco Biometric Integration")
 
 	for setting in biometric_settings:
 		username = setting.username
