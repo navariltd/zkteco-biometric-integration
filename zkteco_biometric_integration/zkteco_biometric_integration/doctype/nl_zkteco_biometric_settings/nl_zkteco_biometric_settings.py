@@ -37,7 +37,11 @@ class NLZKTecoBiometricSettings(Document):
 			if response.status_code == 200:
 				return response.json().get("token")
 			else:
-				frappe.throw(f"Problem generating Token: {response.json().get("detail")}")
+				frappe.log_error(
+					title="ZKTeco Biometric Integration: Token Generation Failed",
+					message=frappe.get_traceback(),
+				)
+				frappe.throw("Problem generating Token")
 
 		except Exception as e:
 			frappe.log_error(frappe.get_traceback(), str(e))
