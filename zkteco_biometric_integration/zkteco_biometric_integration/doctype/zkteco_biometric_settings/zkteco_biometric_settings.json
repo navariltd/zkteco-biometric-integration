@@ -1,0 +1,168 @@
+{
+ "actions": [],
+ "allow_rename": 1,
+ "autoname": "field:username",
+ "creation": "2025-07-09 13:20:54.969980",
+ "doctype": "DocType",
+ "engine": "InnoDB",
+ "field_order": [
+  "username",
+  "password",
+  "column_break_tvyy",
+  "url",
+  "section_break_vxwc",
+  "token",
+  "column_break_jvni",
+  "issued_at",
+  "expiry",
+  "frequency_settings_section",
+  "column_break_qqjj",
+  "is_fetch_enabled",
+  "column_break_jdsq",
+  "section_break_mbix",
+  "fetch_frequency",
+  "cron_expression",
+  "last_fetched_time",
+  "column_break_saju",
+  "enable_mandatory_checkin"
+ ],
+ "fields": [
+  {
+   "fieldname": "username",
+   "fieldtype": "Data",
+   "in_list_view": 1,
+   "label": "Username",
+   "reqd": 1,
+   "unique": 1
+  },
+  {
+   "fieldname": "password",
+   "fieldtype": "Data",
+   "in_list_view": 1,
+   "label": "Password",
+   "reqd": 1
+  },
+  {
+   "fieldname": "column_break_tvyy",
+   "fieldtype": "Column Break"
+  },
+  {
+   "description": "URL Server Address",
+   "fieldname": "url",
+   "fieldtype": "Data",
+   "in_list_view": 1,
+   "label": "URL",
+   "reqd": 1
+  },
+  {
+   "collapsible": 1,
+   "fieldname": "section_break_vxwc",
+   "fieldtype": "Section Break",
+   "label": "Token Details"
+  },
+  {
+   "fieldname": "token",
+   "fieldtype": "Text",
+   "label": "Token",
+   "read_only": 1
+  },
+  {
+   "fieldname": "frequency_settings_section",
+   "fieldtype": "Section Break",
+   "label": "Frequency Settings"
+  },
+  {
+   "fieldname": "fetch_frequency",
+   "fieldtype": "Select",
+   "label": "Fetch Frequency",
+   "options": "All\nHourly\nHourly Long\nHourly Maintenance\nDaily\nDaily Long\nDaily Maintenance\nWeekly\nWeekly Long\nMonthly\nMonthly Long\nCron\nYearl"
+  },
+  {
+   "depends_on": "eval:doc.fetch_frequency===\"Cron\";",
+   "fieldname": "cron_expression",
+   "fieldtype": "Data",
+   "label": "Cron Expression"
+  },
+  {
+   "fieldname": "column_break_jdsq",
+   "fieldtype": "Column Break"
+  },
+  {
+   "fieldname": "column_break_jvni",
+   "fieldtype": "Column Break"
+  },
+  {
+   "default": "now",
+   "fieldname": "issued_at",
+   "fieldtype": "Datetime",
+   "label": "Issued At",
+   "read_only": 1
+  },
+  {
+   "fieldname": "expiry",
+   "fieldtype": "Datetime",
+   "label": "Expiry",
+   "read_only": 1
+  },
+  {
+   "default": "0",
+   "fieldname": "is_fetch_enabled",
+   "fieldtype": "Check",
+   "label": "Enabled"
+  },
+  {
+   "depends_on": "is_fetch_enabled",
+   "fieldname": "section_break_mbix",
+   "fieldtype": "Section Break"
+  },
+  {
+   "fieldname": "column_break_saju",
+   "fieldtype": "Column Break"
+  },
+  {
+   "description": "This setting determines how often the system polls the ZKTeco endpoint to fetch new attendance records within the configured sync window.",
+   "fieldname": "column_break_qqjj",
+   "fieldtype": "Column Break"
+  },
+  {
+   "default": "0",
+   "fieldname": "enable_mandatory_checkin",
+   "fieldtype": "Check",
+   "label": "Enable Mandatory Checkin "
+  },
+  {
+   "fieldname": "last_fetched_time",
+   "fieldtype": "Datetime",
+   "label": "Last Fetched Time",
+   "read_only": 1
+  }
+ ],
+ "grid_page_length": 50,
+ "index_web_pages_for_search": 1,
+ "links": [],
+ "modified": "2026-01-26 17:14:46.865133",
+ "modified_by": "Administrator",
+ "module": "Zkteco Biometric Integration",
+ "name": "ZKTeco Biometric Settings",
+ "naming_rule": "By fieldname",
+ "owner": "Administrator",
+ "permissions": [
+  {
+   "create": 1,
+   "delete": 1,
+   "email": 1,
+   "export": 1,
+   "print": 1,
+   "read": 1,
+   "report": 1,
+   "role": "System Manager",
+   "share": 1,
+   "write": 1
+  }
+ ],
+ "row_format": "Dynamic",
+ "sort_field": "modified",
+ "sort_order": "DESC",
+ "states": [],
+ "track_changes": 1
+}
