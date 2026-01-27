@@ -12,36 +12,53 @@
   "url",
   "section_break_vxwc",
   "token",
+  "column_break_jvni",
+  "issued_at",
+  "expiry",
   "frequency_settings_section",
+  "column_break_qqjj",
+  "is_fetch_enabled",
+  "column_break_jdsq",
+  "section_break_mbix",
   "fetch_frequency",
   "cron_expression",
-  "column_break_jdsq",
-  "enabled"
+  "last_fetched_time",
+  "column_break_saju",
+  "enable_mandatory_checkin"
  ],
  "fields": [
   {
    "fieldname": "username",
    "fieldtype": "Data",
+   "in_list_view": 1,
    "label": "Username",
+   "reqd": 1,
    "unique": 1
   },
   {
    "fieldname": "password",
-   "fieldtype": "Password",
-   "label": "Password"
+   "fieldtype": "Data",
+   "in_list_view": 1,
+   "label": "Password",
+   "reqd": 1
   },
   {
    "fieldname": "column_break_tvyy",
    "fieldtype": "Column Break"
   },
   {
+   "description": "URL Server Address",
    "fieldname": "url",
    "fieldtype": "Data",
-   "label": "URL"
+   "in_list_view": 1,
+   "label": "URL",
+   "reqd": 1
   },
   {
+   "collapsible": 1,
    "fieldname": "section_break_vxwc",
-   "fieldtype": "Section Break"
+   "fieldtype": "Section Break",
+   "label": "Token Details"
   },
   {
    "fieldname": "token",
@@ -71,19 +88,62 @@
    "fieldtype": "Column Break"
   },
   {
+   "fieldname": "column_break_jvni",
+   "fieldtype": "Column Break"
+  },
+  {
+   "default": "now",
+   "fieldname": "issued_at",
+   "fieldtype": "Datetime",
+   "label": "Issued At",
+   "read_only": 1
+  },
+  {
+   "fieldname": "expiry",
+   "fieldtype": "Datetime",
+   "label": "Expiry",
+   "read_only": 1
+  },
+  {
    "default": "0",
-   "fieldname": "enabled",
+   "fieldname": "is_fetch_enabled",
    "fieldtype": "Check",
    "label": "Enabled"
+  },
+  {
+   "depends_on": "is_fetch_enabled",
+   "fieldname": "section_break_mbix",
+   "fieldtype": "Section Break"
+  },
+  {
+   "fieldname": "column_break_saju",
+   "fieldtype": "Column Break"
+  },
+  {
+   "description": "This setting determines how often the system polls the ZKTeco endpoint to fetch new attendance records within the configured sync window.",
+   "fieldname": "column_break_qqjj",
+   "fieldtype": "Column Break"
+  },
+  {
+   "default": "0",
+   "fieldname": "enable_mandatory_checkin",
+   "fieldtype": "Check",
+   "label": "Enable Mandatory Checkin "
+  },
+  {
+   "fieldname": "last_fetched_time",
+   "fieldtype": "Datetime",
+   "label": "Last Fetched Time",
+   "read_only": 1
   }
  ],
  "grid_page_length": 50,
  "index_web_pages_for_search": 1,
  "links": [],
- "modified": "2025-11-04 15:14:32.293993",
+ "modified": "2026-01-26 17:14:46.865133",
  "modified_by": "Administrator",
  "module": "Zkteco Biometric Integration",
- "name": "NL ZKTeco Biometric Settings",
+ "name": "ZKTeco Biometric Settings",
  "naming_rule": "By fieldname",
  "owner": "Administrator",
  "permissions": [
@@ -103,5 +163,6 @@
  "row_format": "Dynamic",
  "sort_field": "modified",
  "sort_order": "DESC",
- "states": []
+ "states": [],
+ "track_changes": 1
 }

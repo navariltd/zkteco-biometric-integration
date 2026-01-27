@@ -1,0 +1,113 @@
+import time
+import frappe
+import requests
+from frappe.model.document import Document
+from zkteco_biometric_integration.zkteco_biometric_integration.utils import (
+    make_http_request,
+)
+from frappe.utils import get_datetime
+
+
+@frappe.whitelist()
+def handle_employee_checkin():
+
+    biometric_settings = frappe.get_all(
+        "ZKTeco Biometric Settings", filters={"is_fetch_enabled": 1}
+    )
+
+    for setting in biometric_settings:
+        setting_doc = frappe.get_doc("ZKTeco Biometric Settings", setting.name)
+
+        transactions = get_transactions(setting_doc)
+        if not transactions:
+            return
+
+        for txn in transactions:
+            if emp_checkin := create_employee_checkin(txn):
+                (
+                    manage_user(emp_checkin)
+                    if setting_doc.enable_mandatory_checkin
+                    else None
+                )
+
+
+@frappe.whitelist(allow_guest=True)
+def get_transactions(setting_doc: Document) -> list[dict]:
+
+    headers = {
+        "Content-Type": "application/json",
+        "Authorization": f"JWT {setting_doc.token}",
+    }
+
+    url = f"{setting_doc.url}/iclock/api/transactions/"
+
+    start_time = (
+        setting_doc.last_fetched_time
+        if setting_doc.last_fetched_time
+        else get_datetime()
+    )
+    end_time = get_datetime()
+
+    params = {
+        "start_time": (start_time.strftime("%Y-%m-%d %H:%M:%S")),
+        "end_time": (end_time.strftime("%Y-%m-%d %H:%M:%S")),
+    }
+
+    response = make_http_request(method="GET", url=url, headers=headers, params=params)
+
+    if response and response.get("data"):
+        setting_doc.last_fetched_time = get_datetime()
+        setting_doc.save(ignore_permissions=True)
+
+        return response["data"]
+
+
+def map_checkin(punch_state: str) -> str:
+    punch_state_map = {
+        "Check In": "IN",
+        "Check Out": "OUT",
+    }
+    return punch_state_map.get(punch_state, "")
+
+
+def create_employee_checkin(transaction: dict) -> None:
+
+    try:
+        frappe.set_user("ZKTeco Biometric")
+        employee_checkin = frappe.get_doc(
+            {
+                "doctype": "Employee Checkin",
+                "employee": transaction.get("emp_code"),
+                "time": transaction.get("timestamp"),
+                "log_type": map_checkin(transaction.get("punch_state_display")),
+            }
+        )
+        employee_checkin.insert(ignore_permissions=True)
+        return employee_checkin
+
+    except Exception as e:
+        frappe.log_error(frappe.get_traceback(), str(e))
+    finally:
+        frappe.set_user("Guest")
+
+
+def activate_user(user_id: str, log_type: str) -> None:
+    user = frappe.get_doc("User", user_id)
+
+    is_admin = "System Manager" in frappe.get_roles(user_id)
+    if is_admin:
+        return
+
+    should_enable = log_type == "IN"
+
+    if user.enabled != should_enable:
+        user.enabled = int(should_enable)
+        user.save(ignore_permissions=True)
+
+
+def manage_user(employee_checkin: Document):
+    if frappe.db.exists("Employee", employee_checkin.employee):
+        employee = frappe.get_doc("Employee", employee_checkin.employee)
+
+        if employee.user_id:
+            activate_user(employee.user_id, employee_checkin.log_type)

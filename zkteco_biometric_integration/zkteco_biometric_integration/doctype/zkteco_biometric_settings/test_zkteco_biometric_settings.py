@@ -5,5 +5,5 @@ import frappe
 from frappe.tests.utils import FrappeTestCase
 
 
-class TestNLZKTecoBiometricSettings(FrappeTestCase):
+class TestZKTecoBiometricSettings(FrappeTestCase):
 	pass
