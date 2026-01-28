@@ -4,8 +4,10 @@ import requests
 from frappe.model.document import Document
 from zkteco_biometric_integration.zkteco_biometric_integration.utils import (
     make_http_request,
+    update_integration_request_log,
 )
 from frappe.utils import get_datetime
+from frappe.integrations.utils import create_request_log
 
 
 @frappe.whitelist()
@@ -49,23 +51,51 @@ def get_transactions(setting_doc: Document) -> list[dict]:
     )
     end_time = get_datetime()
 
+    frappe.log_error(
+        message=f"Fetching transactions from {start_time} to {end_time}",
+        title="time window",
+    )
+
     params = {
         "start_time": (start_time.strftime("%Y-%m-%d %H:%M:%S")),
         "end_time": (end_time.strftime("%Y-%m-%d %H:%M:%S")),
     }
 
-    response = make_http_request(method="GET", url=url, headers=headers, params=params)
+    integration_request_log = create_request_log(
+        data=params,
+        integration_type="Remote",
+        service_name="ZKTeco Biometric Integration",
+        request_headers=headers,
+        request_url=url,
+        reference_doctype="ZKTeco Biometric Settings",
+        reference_docname=setting_doc.name,
+    )
 
-    if response and response.get("data"):
-
-        frappe.db.set_value(
-            "ZKTeco Biometric Settings",
-            setting_doc.name,
-            "last_fetched_time",
-            get_datetime(),
+    try:
+        response = make_http_request(
+            method="GET", url=url, headers=headers, params=params
         )
+        frappe.log_error(message=str(response), title="ZKTeco  Response")
 
-        return response["data"]
+        if response and response.get("data"):
+
+            frappe.db.set_value(
+                "ZKTeco Biometric Settings",
+                setting_doc.name,
+                "last_fetched_time",
+                get_datetime(),
+            )
+
+            update_integration_request_log(
+                integration_request_log, status="Completed", response=response
+            )
+
+            return response["data"]
+    except Exception as e:
+        update_integration_request_log(
+            integration_request_log, status="Failed", error=str(e)
+        )
+        frappe.log_error(frappe.get_traceback(), str(e))
 
 
 def map_checkin(punch_state: str) -> str:
@@ -110,7 +140,6 @@ def activate_user(user_id: str, log_type: str) -> None:
 
     except Exception:
         frappe.log_error(message=frappe.get_traceback(), title="User Activation Error")
-        
 
 
 def manage_user(employee_checkin: Document):
