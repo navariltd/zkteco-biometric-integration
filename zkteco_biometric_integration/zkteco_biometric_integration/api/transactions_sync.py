@@ -19,6 +19,7 @@ def handle_employee_checkin():
         setting_doc = frappe.get_doc("ZKTeco Biometric Settings", setting.name)
 
         transactions = get_transactions(setting_doc)
+        frappe.log_error(message=str(transactions), title="ZKTeco Transactions Fetched")
         if not transactions:
             return
 
@@ -56,8 +57,13 @@ def get_transactions(setting_doc: Document) -> list[dict]:
     response = make_http_request(method="GET", url=url, headers=headers, params=params)
 
     if response and response.get("data"):
-        setting_doc.last_fetched_time = get_datetime()
-        setting_doc.save(ignore_permissions=True)
+
+        frappe.db.set_value(
+            "ZKTeco Biometric Settings",
+            setting_doc.name,
+            "last_fetched_time",
+            get_datetime(),
+        )
 
         return response["data"]
 
@@ -92,17 +98,19 @@ def create_employee_checkin(transaction: dict) -> None:
 
 
 def activate_user(user_id: str, log_type: str) -> None:
-    user = frappe.get_doc("User", user_id)
+    try:
+        if "System Manager" in frappe.get_roles(user_id):
+            return
 
-    is_admin = "System Manager" in frappe.get_roles(user_id)
-    if is_admin:
-        return
+        should_enable = log_type == "IN"
 
-    should_enable = log_type == "IN"
+        frappe.db.set_value(
+            "User", user_id, "enabled", int(should_enable), update_modified=False
+        )
 
-    if user.enabled != should_enable:
-        user.enabled = int(should_enable)
-        user.save(ignore_permissions=True)
+    except Exception:
+        frappe.log_error(message=frappe.get_traceback(), title="User Activation Error")
+        
 
 
 def manage_user(employee_checkin: Document):
