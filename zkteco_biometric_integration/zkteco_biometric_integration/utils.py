@@ -1,5 +1,7 @@
 import requests
 import frappe
+from typing import Literal
+from frappe.model.document import Document
 
 methodMap: dict[str, callable] = {
     "GET": requests.get,
@@ -36,3 +38,20 @@ def make_http_request(
             message=frappe.get_traceback(), title="ZKTeco Biometric Integration"
         )
         frappe.throw(f"HTTP Request failed: {e}")
+
+
+def update_integration_request_log(
+    integration_request_log: Document,
+    status: Literal["Completed", "Failed"],
+    response: dict | None = None,
+    error: str | None = None,
+) -> None:
+
+    if not integration_request_log:
+        return
+
+    integration_request_log.status = str(status)
+    integration_request_log.output = str(response)
+    integration_request_log.error = str(error)
+
+    integration_request_log.save(ignore_permissions=True)
