@@ -75,7 +75,7 @@
    "fieldname": "fetch_frequency",
    "fieldtype": "Select",
    "label": "Fetch Frequency",
-   "options": "All\nHourly\nHourly Long\nHourly Maintenance\nDaily\nDaily Long\nDaily Maintenance\nWeekly\nWeekly Long\nMonthly\nMonthly Long\nCron\nYearl"
+   "options": "All\nHourly\nHourly Long\nHourly Maintenance\nDaily\nDaily Long\nDaily Maintenance\nWeekly\nWeekly Long\nMonthly\nMonthly Long\nCron\nYearly"
   },
   {
    "depends_on": "eval:doc.fetch_frequency===\"Cron\";",
@@ -126,11 +126,13 @@
   },
   {
    "default": "0",
+   "description": "utomatically manages user access based on activity: Disables the user profile upon Check-out and re-enables it upon Check-in.",
    "fieldname": "enable_mandatory_checkin",
    "fieldtype": "Check",
    "label": "Enable Mandatory Checkin "
   },
   {
+   "default": "now",
    "fieldname": "last_fetched_time",
    "fieldtype": "Datetime",
    "label": "Last Fetched Time",
@@ -140,7 +142,7 @@
  "grid_page_length": 50,
  "index_web_pages_for_search": 1,
  "links": [],
- "modified": "2026-01-26 17:14:46.865133",
+ "modified": "2026-01-30 14:54:35.708007",
  "modified_by": "Administrator",
  "module": "Zkteco Biometric Integration",
  "name": "ZKTeco Biometric Settings",

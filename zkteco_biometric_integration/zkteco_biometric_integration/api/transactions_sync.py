@@ -1,10 +1,9 @@
-import time
 import frappe
-import requests
 from frappe.model.document import Document
 from zkteco_biometric_integration.zkteco_biometric_integration.utils import (
     make_http_request,
     update_integration_request_log,
+    map_checkin,
 )
 from frappe.utils import get_datetime
 from frappe.integrations.utils import create_request_log
@@ -36,6 +35,9 @@ def handle_employee_checkin():
 
 @frappe.whitelist(allow_guest=True)
 def get_transactions(setting_doc: Document) -> list[dict]:
+
+    if setting_doc.is_token_expired():
+        setting_doc.save()
 
     headers = {
         "Content-Type": "application/json",
@@ -75,7 +77,6 @@ def get_transactions(setting_doc: Document) -> list[dict]:
         response = make_http_request(
             method="GET", url=url, headers=headers, params=params
         )
-        frappe.log_error(message=str(response), title="ZKTeco  Response")
 
         if response and response.get("data"):
 
@@ -96,14 +97,6 @@ def get_transactions(setting_doc: Document) -> list[dict]:
             integration_request_log, status="Failed", error=str(e)
         )
         frappe.log_error(frappe.get_traceback(), str(e))
-
-
-def map_checkin(punch_state: str) -> str:
-    punch_state_map = {
-        "Check In": "IN",
-        "Check Out": "OUT",
-    }
-    return punch_state_map.get(punch_state, "")
 
 
 def create_employee_checkin(transaction: dict) -> None:
