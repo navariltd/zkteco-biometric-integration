@@ -37,7 +37,7 @@ def handle_employee_checkin():
 def get_transactions(setting_doc: Document) -> list[dict]:
 
     if not setting_doc.is_token_valid():
-        setting_doc.get_token()
+        setting_doc.save()
 
     headers = {
         "Content-Type": "application/json",
