@@ -2,14 +2,15 @@ import requests
 import frappe
 from typing import Literal
 from frappe.model.document import Document
+from datetime import datetime, date, time
 
-methodMap: dict[str, callable] = {
+methodMap: dict[str, callable[..., requests.Response]] = {
     "GET": requests.get,
     "POST": requests.post,
 }
 
 
-def http_type_method(method: str) -> callable:
+def http_type_method(method: str) -> callable[..., requests.Response]:
 
     if method not in methodMap:
         frappe.throw(f"HTTP Method {method} not supported")
@@ -55,3 +56,42 @@ def update_integration_request_log(
     integration_request_log.error = str(error)
 
     integration_request_log.save(ignore_permissions=True)
+
+
+def map_checkin(punch_state: str) -> str:
+    punch_state_map = {
+        "Check In": "IN",
+        "Check Out": "OUT",
+    }
+
+    checkin_state = punch_state_map.get(punch_state)
+    if not checkin_state:
+        frappe.log_error(f"Unknown punch state: {punch_state}")
+        return
+    return checkin_state
+
+
+def get_employees() -> list[dict]:
+    return frappe.get_all(
+        "Employee",
+        filters={"status": "Active"},
+    )
+
+
+def get_day_time_range() -> list[datetime]:
+
+    today = date.today()
+    start_of_day = datetime.combine(today, time())
+    end_of_day = datetime.combine(today, time(23, 59, 59))
+    return [start_of_day, end_of_day]
+
+
+def does_checkin_exist(employee: str):
+    return frappe.db.exists(
+        "Employee Checkin",
+        {
+            "employee": employee,
+            "log_type": "IN",
+            "time": ["between", get_day_time_range()],
+        },
+    )
