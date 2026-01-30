@@ -138,7 +138,7 @@ class ZKTecoBiometricSettings(Document):
             frappe.log_error(frappe.get_traceback(), str(e))
             frappe.throw("Problem managing check-in scheduler", str(e))
 
-    def is_token_valid(self) -> bool:
+    def is_token_expired(self) -> bool:
         if not self.token or not self.expiry:
             return False
 
