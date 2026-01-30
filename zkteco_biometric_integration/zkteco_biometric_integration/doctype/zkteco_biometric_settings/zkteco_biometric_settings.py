@@ -26,7 +26,7 @@ class ZKTecoBiometricSettings(Document):
         cron_expression: DF.Data | None
         enable_mandatory_checkin: DF.Check
         expiry: DF.Datetime | None
-        fetch_frequency: DF.Literal["All", "Hourly", "Hourly Long", "Hourly Maintenance", "Daily", "Daily Long", "Daily Maintenance", "Weekly", "Weekly Long", "Monthly", "Monthly Long", "Cron", "Yearl"]
+        fetch_frequency: DF.Literal["All", "Hourly", "Hourly Long", "Hourly Maintenance", "Daily", "Daily Long", "Daily Maintenance", "Weekly", "Weekly Long", "Monthly", "Monthly Long", "Cron", "Yearly"]
         is_fetch_enabled: DF.Check
         issued_at: DF.Datetime | None
         last_fetched_time: DF.Datetime | None
@@ -66,6 +66,9 @@ class ZKTecoBiometricSettings(Document):
         token: DF.Text | None
         url: DF.Data | None
         username: DF.Data | None
+
+    def before_insert(self):
+        self.last_fetched_time = get_datetime()
 
     def validate(self):
         self.generate_token()
@@ -134,3 +137,9 @@ class ZKTecoBiometricSettings(Document):
         except Exception as e:
             frappe.log_error(frappe.get_traceback(), str(e))
             frappe.throw("Problem managing check-in scheduler", str(e))
+
+    def is_token_valid(self) -> bool:
+        if not self.token or not self.expiry:
+            return False
+
+        return get_datetime() >= self.expiry
