@@ -131,6 +131,7 @@
    "label": "Enable Mandatory Checkin "
   },
   {
+   "default": "now",
    "fieldname": "last_fetched_time",
    "fieldtype": "Datetime",
    "label": "Last Fetched Time",
@@ -140,7 +141,7 @@
  "grid_page_length": 50,
  "index_web_pages_for_search": 1,
  "links": [],
- "modified": "2026-01-26 17:14:46.865133",
+ "modified": "2026-01-29 10:29:39.159728",
  "modified_by": "Administrator",
  "module": "Zkteco Biometric Integration",
  "name": "ZKTeco Biometric Settings",
