@@ -3,14 +3,15 @@ import frappe
 from typing import Literal
 from frappe.model.document import Document
 from datetime import datetime, date, time
+from typing import Callable
 
-methodMap: dict[str, callable[..., requests.Response]] = {
+methodMap: dict[str, Callable[..., requests.Response]] = {
     "GET": requests.get,
     "POST": requests.post,
 }
 
 
-def http_type_method(method: str) -> callable[..., requests.Response]:
+def http_type_method(method: str) -> Callable[..., requests.Response]:
 
     if method not in methodMap:
         frappe.throw(f"HTTP Method {method} not supported")
