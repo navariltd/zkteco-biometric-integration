@@ -96,3 +96,24 @@ def does_checkin_exist(employee: str):
             "time": ["between", get_day_time_range()],
         },
     )
+
+
+def does_checkin_exist(transaction: dict) -> bool:
+    return frappe.db.exists(
+        "Employee Checkin",
+        {
+            "employee": transaction.get("emp_code"),
+            "time": transaction.get("punch_time"),
+            "log_type": map_checkin(transaction.get("punch_state_display")),
+        },
+    )
+
+
+def does_employee_exist(emp_code: str) -> bool:
+    return frappe.db.exists(
+        "Employee",
+        {
+            "name": emp_code,
+            "status": "Active",
+        },
+    )
