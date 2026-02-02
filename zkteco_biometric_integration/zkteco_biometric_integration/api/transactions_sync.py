@@ -4,6 +4,8 @@ from zkteco_biometric_integration.zkteco_biometric_integration.utils import (
     make_http_request,
     update_integration_request_log,
     map_checkin,
+    does_checkin_exist,
+    does_employee_exist,
 )
 from frappe.utils import get_datetime
 from frappe.integrations.utils import create_request_log
@@ -66,26 +68,36 @@ def get_transactions(setting_doc: Document) -> list[dict]:
         reference_doctype="ZKTeco Biometric Settings",
         reference_docname=setting_doc.name,
     )
+    all_transactions = []
 
     try:
-        response = make_http_request(
-            method="GET", url=url, headers=headers, params=params
-        )
+        while url:
+            response = make_http_request(
+                method="GET", url=url, headers=headers, params=params
+            )
 
-        if response and response.get("data"):
+            if response and response.get("data"):
+                all_transactions.extend(response["data"])
+
+                url = response.get("next")
+                params = None
+            else:
+                break
+
+        if all_transactions:
 
             frappe.db.set_value(
                 "ZKTeco Biometric Settings",
                 setting_doc.name,
                 "last_fetched_time",
-                get_datetime(),
+                end_time,
             )
 
             update_integration_request_log(
                 integration_request_log, status="Completed", response=response
             )
 
-            return response["data"]
+        return all_transactions
     except Exception as e:
         update_integration_request_log(
             integration_request_log, status="Failed", error=str(e)
@@ -95,14 +107,12 @@ def get_transactions(setting_doc: Document) -> list[dict]:
 
 def create_employee_checkin(transaction: dict) -> None:
 
-    if frappe.db.exists(
-        "Employee Checkin",
-        {
-            "employee": transaction.get("emp_code"),
-            "time": transaction.get("punch_time"),
-            "log_type": map_checkin(transaction.get("punch_state_display")),
-        },
-    ):
+    validation_rules = [
+        lambda: does_checkin_exist(transaction),
+        lambda: not does_employee_exist(transaction.get("emp_code")),
+    ]
+
+    if any(rule() for rule in validation_rules):
         return
 
     try:
