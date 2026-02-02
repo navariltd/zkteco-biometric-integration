@@ -99,7 +99,7 @@ def create_employee_checkin(transaction: dict) -> None:
         "Employee Checkin",
         {
             "employee": transaction.get("emp_code"),
-            "time": transaction.get("timestamp"),
+            "time": transaction.get("punch_time"),
             "log_type": map_checkin(transaction.get("punch_state_display")),
         },
     ):
@@ -111,7 +111,7 @@ def create_employee_checkin(transaction: dict) -> None:
             {
                 "doctype": "Employee Checkin",
                 "employee": transaction.get("emp_code"),
-                "time": transaction.get("timestamp"),
+                "time": transaction.get("punch_time"),
                 "log_type": map_checkin(transaction.get("punch_state_display")),
             }
         )
@@ -119,7 +119,9 @@ def create_employee_checkin(transaction: dict) -> None:
         return employee_checkin
 
     except Exception as e:
-        frappe.log_error(frappe.get_traceback(), str(e))
+        frappe.log_error(
+            title="Employee Checkin Creation Error", message=frappe.get_traceback()
+        )
     finally:
         frappe.set_user("Guest")
 
