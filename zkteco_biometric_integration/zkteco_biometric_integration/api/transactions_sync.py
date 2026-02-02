@@ -20,7 +20,6 @@ def handle_employee_checkin():
         setting_doc = frappe.get_doc("ZKTeco Biometric Settings", setting.name)
 
         transactions = get_transactions(setting_doc)
-        frappe.log_error(message=str(transactions), title="ZKTeco Transactions Fetched")
         if not transactions:
             return
 
@@ -52,11 +51,6 @@ def get_transactions(setting_doc: Document) -> list[dict]:
         else get_datetime()
     )
     end_time = get_datetime()
-
-    frappe.log_error(
-        message=f"Fetching transactions from {start_time} to {end_time}",
-        title="time window",
-    )
 
     params = {
         "start_time": (start_time.strftime("%Y-%m-%d %H:%M:%S")),
@@ -100,6 +94,16 @@ def get_transactions(setting_doc: Document) -> list[dict]:
 
 
 def create_employee_checkin(transaction: dict) -> None:
+
+    if frappe.db.exists(
+        "Employee Checkin",
+        {
+            "employee": transaction.get("emp_code"),
+            "time": transaction.get("timestamp"),
+            "log_type": map_checkin(transaction.get("punch_state_display")),
+        },
+    ):
+        return
 
     try:
         frappe.set_user("ZKTeco Biometric")
