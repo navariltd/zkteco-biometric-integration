@@ -26,26 +26,6 @@ class ZKTecoBiometricSettings(Document):
         cron_expression: DF.Data | None
         enable_mandatory_checkin: DF.Check
         expiry: DF.Datetime | None
-        fetch_frequency: DF.Literal["All", "Hourly", "Hourly Long", "Hourly Maintenance", "Daily", "Daily Long", "Daily Maintenance", "Weekly", "Weekly Long", "Monthly", "Monthly Long", "Cron", "Yearly"]
-        is_fetch_enabled: DF.Check
-        issued_at: DF.Datetime | None
-        last_fetched_time: DF.Datetime | None
-        password: DF.Data
-        token: DF.Text | None
-        url: DF.Data
-        username: DF.Data
-    # end: auto-generated types
-    # begin: auto-generated types
-    # This code is auto-generated. Do not modify anything in this block.
-
-    from typing import TYPE_CHECKING
-
-    if TYPE_CHECKING:
-        from frappe.types import DF
-
-        cron_expression: DF.Data | None
-        enabled: DF.Check
-        expiry: DF.Datetime | None
         fetch_frequency: DF.Literal[
             "All",
             "Hourly",
@@ -59,13 +39,15 @@ class ZKTecoBiometricSettings(Document):
             "Monthly",
             "Monthly Long",
             "Cron",
-            "Yearl",
+            "Yearly",
         ]
+        is_fetch_enabled: DF.Check
         issued_at: DF.Datetime | None
-        password: DF.Data | None
+        last_fetched_time: DF.Datetime | None
+        password: DF.Data
         token: DF.Text | None
-        url: DF.Data | None
-        username: DF.Data | None
+        url: DF.Data
+        username: DF.Data
 
     def before_insert(self):
         self.last_fetched_time = get_datetime()
