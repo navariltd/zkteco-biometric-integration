@@ -1,0 +1,43 @@
+{
+ "app": "zkteco_biometric_integration",
+ "creation": "2026-02-02 15:58:53.593634",
+ "docstatus": 0,
+ "doctype": "Workspace Sidebar",
+ "header_icon": "",
+ "idx": 0,
+ "items": [
+  {
+   "child": 1,
+   "collapsible": 1,
+   "filters": "[[\"Integration Request\",\"reference_doctype\",\"=\",\"ZKTeco Biometric Settings\"]]",
+   "icon": "integration",
+   "indent": 0,
+   "keep_closed": 0,
+   "label": "Integration Requests",
+   "link_to": "Integration Request",
+   "link_type": "DocType",
+   "show_arrow": 0,
+   "type": "Link"
+  },
+  {
+   "child": 1,
+   "collapsible": 1,
+   "filters": "[[\"Error Log\",\"method\",\"like\",\"%zkteco%\"]]",
+   "icon": "solid-error",
+   "indent": 0,
+   "keep_closed": 0,
+   "label": "Error Log",
+   "link_to": "Error Log",
+   "link_type": "DocType",
+   "show_arrow": 0,
+   "type": "Link"
+  }
+ ],
+ "modified": "2026-02-02 16:18:41.783472",
+ "modified_by": "Administrator",
+ "module": "Integrations",
+ "name": "ZKTeco",
+ "owner": "Administrator",
+ "standard": 1,
+ "title": "ZKTeco"
+}
