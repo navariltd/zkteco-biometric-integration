@@ -1,129 +1,205 @@
-#  ZKTeco Biometric Integraion System with FrappeHR 
-## Introduction
-<img width="834" height="407" alt="image" src="https://github.com/user-attachments/assets/c86f875b-1173-4a56-83ae-e7bf6d4c4ea8" />
+# ZKTeco Biometric Integration for FrappeHR
 
-Integrating the ZKTeco biometric system with FrappeHR enables real-time attendance tracking and automated data synchronization. This integration allows you to efficiently capture and manage punch logs directly from your ZKTeco biometric devices, ensuring accurate and up-to-date attendance records.
+[![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
 
-By setting up this integration, you can streamline your attendance processes, minimize manual data entry, and enhance overall accuracy in tracking employee time. The integration ensures that punch data from ZKTeco biometric devices is seamlessly transferred to FrappeHR, where it is recorded in real-time, helping you maintain a reliable attendance management system.
+<img width="834" height="407" alt="ZKTeco Integration Banner" src="https://github.com/user-attachments/assets/c86f875b-1173-4a56-83ae-e7bf6d4c4ea8" />
 
-## 1. Setup and Configuration
+## Overview
 
-### 1.1 ZKTeco Biometric Settings
+An integration solution that connects ZKTeco biometric devices with FrappeHR for automated attendance tracking and real-time synchronization. This app eliminates manual data entry, ensures accurate attendance records, and streamlines workforce management.
 
-1. **Username and Password:**
-   * After configuring your ZKTeco device, you will need the admin username and password.
-   * These credentials are crucial for configuring the ZKTeco device and integrating it with FrappeHR.
-   * Fill those details in the respective fields in the ZKTeco biometric settings doctype.
+## Features
 
-2. **Device URL:**
-   * You will need the IP address or URL of your ZKTeco device.
-   * This URL is essential for establishing communication between FrappeHR and the ZKTeco device.
-   * Enter the device URL in the URL field in the ZKTeco biometric settings doctype.
-  
-   ### NL ZKTeco Biometric Settings
-     <img width="1193" height="476" alt="image" src="https://github.com/user-attachments/assets/b3f7e567-cc13-4655-bd2c-611c8c4041e1" />
-     <img width="909" height="169" alt="image" src="https://github.com/user-attachments/assets/46320735-d498-4581-872d-866f126a7ad7" />
+- 🔄 **Real-time Synchronization**: Automatic data sync from ZKTeco devices to FrappeHR
+- 🔐 **Secure Authentication**: JWT token-based secure API communication
+- ⏰ **Flexible Scheduling**: Configurable sync frequencies (Hourly, Daily, Weekly, Monthly, Cron)
+- 👥 **Employee Mapping**: Seamless biometric ID to employee record mapping
+- 📊 **Attendance Automation**: Automatic Employee Check-in record creation
+- 🔧 **Multi-Device Support**: Manage multiple ZKTeco devices from a single interface
+- 📝 **Audit Trail**: Comprehensive logging for all synchronization activities
+- 🔒 **User Status Management**: Automatic user enable/disable on device during check-in/check-out
 
+## Prerequisites
 
+- Frappe Framework
+- ERPNext
+- FrappeHR
+- ZKTeco Biometric Device with network connectivity
+- Admin access to ZKTeco device
 
-1. **Settings Configuration:**
-   * Navigate to the ZKTeco Biometric Integration Settings.
-   * Create a new ZKTeco Biometric Settings record.
-   * Fill in the required configuration:
-     * **Username**: ZKTeco device  username   NB: username should be unique for each
-     * **Password**: ZKTeco device  password
-     * **URL**: ZKTeco device IP address or URL
-     * **Fetch Frequency**: Choose synchronization frequency (Hourly, Daily, etc.)
-     * **Enable**: Check to activate the integration
+## Installation
 
-2. **Token Generation:**
-   * Upon saving the settings, the system automatically generates a JWT token.
-   * This token is used for secure API communication with the ZKTeco device.
-   * Token expiry is handled automatically by the system.
+### For Self-Hosted/Manual Installation
 
-### 1.4 Employee Configuration
-
-1. **Employee Biometric ID Mapping:**
-   * Each employee must be assigned a unique biometric ID in the FrappeHR system, similar to the one registered in the ZKTeco device.
-   * It is recommended that this ID closely resembles the employee's system ID for consistency.
-   * Since you have registered the employee on the ZKTeco device, get the same ID and ensure it matches the employee ID in FrappeHR.
-
-2. **Shift Assignment:**
-   * Assign appropriate shifts to each employee to facilitate automatic attendance marking.
-   * This step is crucial for ensuring that the attendance system functions correctly, as it relies on shift data to log employee punch times accurately.
-
-## 2. Key Points to Remember
-
-* **Attendance Marking:**
-  * The biometric punch data will update the Employee Check-in records.
-  * The date of the last synchronization from the attached shift will be updated with the latest punch log.
-
-* **Regular Syncing:**
-  * The system automatically synchronizes data based on the configured frequency.
-  * Regularly verify and monitor synchronization logs to ensure accurate attendance records.
-
-* **Employee Records:**
-  * Accurate mapping of biometric IDs and shift assignments is vital for correct attendance tracking and reporting.
-
-* **Scheduled Synchronization:**
-  * The integration uses  scheduled job system to automatically fetch punch data.
-  * You can configure different synchronization frequencies based on your requirements.
-  * Available options include: All, Hourly, Daily, Weekly, Monthly, and custom Cron expressions.
-
-## 3. How the Integration Works
-
-### 3.1 Authentication Process
-
-1. **Token Generation:**
-   * The system generates a JWT token using the provided username and password.
-   * This token is used for all subsequent API calls to the ZKTeco device.
-
-2. **Token Management:**
-   * Tokens are automatically renewed when they expire.
-   * The system handles token validation and renewal transparently.
-
-### 3.2 Data Synchronization Process
-
-1. **Scheduled Execution:**
-   * The system runs synchronization based on the configured frequency.
-   * Each enabled ZKTeco configuration is processed independently.
-
-2. **Transaction Retrieval:**
-   * The system fetches punch transactions from the ZKTeco device using the API.
-   * Transactions include employee codes, punch times, and punch states.
-
-3. **Data Processing:**
-   * Punch states are converted to check-in/check-out logs.
-   * Employee codes are mapped to FrappeHR employee records.
-   * Duplicate records are automatically prevented.
-
-4. **Record Creation:**
-   * Employee Checkin records are created in FrappeHR for each valid transaction.
-   * Records include employee ID, log type (IN/OUT), and punch time.
-
-## Installation Process
-
-### Manual/Self-Hosted Installation
-
-1. Install bench
-2. Install ERPNext
-3. Install FrappeHR
-4. Once bench, ERPNext and FrappeHR are installed, add zkteco_biometric_integration to your bench by running:
+1. **Get the app:**
 
 ```bash
-bench get-app --branch {branch-name} [https://github.com/navariltd/zkteco_biometric_integration.git](https://github.com/navariltd/zkteco-biometric-integration)
+bench get-app --branch version-16 https://github.com/navariltd/zkteco-biometric-integration
 ```
 
-Replace `{branch-name}` with the desired branch name from the repository. Ensure compatibility with your installed versions of Frappe, ERPNext and Frappe HR.
-
-5. Install the zkteco_biometric_integration app on your site by running:
+2. **Install on your site:**
 
 ```bash
 bench --site {sitename} install-app zkteco_biometric_integration
 ```
 
-Replace `{sitename}` with the name of your site.
+3. **Restart bench:**
 
+```bash
+bench restart
+```
 
+## Configuration
 
-If assistance is needed to get started, reach out for consultation and support from: [Navari](https://navari.co.ke/)
+### 1. ZKTeco Device Setup
+
+Ensure your ZKTeco device is:
+
+- Connected to the network
+- Accessible via IP address
+- Has admin credentials configured
+
+### 2. FrappeHR Configuration
+
+**Step 1: Create ZKTeco Biometric Settings**
+
+Navigate to: `ZKTeco Biometric Integration` > `ZKTeco Biometric Settings`
+
+<img width="848" height="593" alt="image" src="https://github.com/user-attachments/assets/4532fd73-c9f6-4627-b56a-5e977227b53d" />
+
+Configure the following fields:
+
+- **Username**: Admin username for ZKTeco device (must be unique per device)
+- **Password**: Admin password for ZKTeco device
+- **URL**: Device IP address (e.g., `http://192.168.1.100`)
+- **Fetch Frequency**: Select sync frequency:
+  - All (Continuous)
+  - Hourly
+  - Daily
+  - Weekly
+  - Monthly
+  - Custom Cron expression
+- **Enable**: Activate the integration
+
+**Step 2: JWT Token Generation**
+
+Upon saving, the system automatically:
+
+- Generates a secure JWT token
+- Handles token renewal
+- Manages authentication with the device
+
+### 3. Employee Configuration
+
+**Biometric ID Mapping:**
+
+For each employee:
+
+1. Navigate to Employee master
+2. Enter the **Biometric ID** matching the ID registered on the ZKTeco device
+3. Ensure the ID is unique and matches exactly
+
+**Shift Assignment:**
+
+Assign appropriate shifts to employees for accurate attendance tracking.
+
+## How It Works
+
+### Authentication Flow
+
+1. System generates JWT token using device credentials
+2. Token authenticates all API requests
+3. Automatic token renewal on expiry
+
+### Synchronization Process
+
+1. **Scheduled Job**: Runs based on configured frequency
+2. **Data Fetch**: Retrieves punch transactions from device API
+3. **Validation**: Maps employee codes to FrappeHR records
+4. **Record Creation**: Creates Employee Check-in records
+5. **Duplicate Prevention**: Automatically filters duplicate entries
+
+### Data Mapping
+
+- **Punch States**: Converted to IN/OUT log types
+- **Employee Codes**: Mapped to FrappeHR Employee records
+- **Timestamps**: Synchronized with accurate punch times
+
+### User Status Management
+
+The integration automatically manages user status on the ZKTeco device based on check-in/check-out activities:
+
+**Check-Out (OUT log type):**
+
+- When an employee checks out, the system automatically **disables** their user account on the ZKTeco device
+- This prevents unauthorized access after the employee has left the premises
+- The user's biometric data remains on the device but access is restricted
+
+**Check-In (IN log type):**
+
+- When an employee checks in, the system automatically **re-enables** their user account on the ZKTeco device
+- This restores full biometric access for the employee
+- Ensures seamless entry for the next work session
+
+**Benefits:**
+
+- Enhanced security by controlling device access based on attendance status
+- Automatic access control without manual intervention
+- Reduced risk of unauthorized entries outside work hours
+
+## Usage
+
+Once configured, the integration automatically:
+
+- Fetches punch data from ZKTeco devices
+- Creates Employee Check-in records
+- Updates last synchronization timestamps
+- Manages user enable/disable status on the device
+- Logs all synchronization activities
+
+Monitor synchronization through:
+
+- Error Logs
+- Scheduled Job Logs
+- Employee Check-in records
+
+## Troubleshooting
+
+**Common Issues:**
+
+1. **Connection Failed**
+   - Verify device URL and network connectivity
+   - Check firewall settings
+   - Ensure device is powered on
+
+2. **Authentication Error**
+   - Verify username and password
+   - Check token generation in settings
+
+3. **No Data Syncing**
+   - Verify fetch frequency configuration
+   - Check if integration is enabled
+   - Review scheduled job status
+
+4. **Employee Not Found**
+   - Verify biometric ID mapping
+   - Ensure employee record exists in FrappeHR
+
+5. **User Enable/Disable Not Working**
+   - Ensure an employee is linked to their respective userId
+   - Verify API permissions for user management
+   - Check device firmware supports user status management
+   - Review error logs for API response errors
+
+## Support & Consultation
+
+For implementation support, customization, or consultation:
+
+📧 **Contact**: [Navari Limited](https://navari.co.ke/)
+
+## Contributing
+
+Contributions are welcome! Please feel free to submit issues or pull requests.
+
+**Developed by**: [Navari Limited](https://navari.co.ke/)  
+**Repository**: [github.com/navariltd/zkteco-biometric-integration](https://github.com/navariltd/zkteco-biometric-integration)
