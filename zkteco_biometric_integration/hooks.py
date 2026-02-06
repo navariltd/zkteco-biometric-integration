@@ -1,7 +1,7 @@
 app_name = "zkteco_biometric_integration"
 app_title = "Zkteco Biometric Integration"
 app_publisher = "Navari Limited"
-app_description = "bench new-app zkteco_biometric_integration"
+app_description = "Zkteco Biometric Integration"
 app_email = "navarisolutions@gmail.com"
 app_license = "mit"
 
@@ -11,15 +11,15 @@ app_license = "mit"
 # required_apps = []
 
 # Each item in the list will be shown as an app in the apps page
-# add_to_apps_screen = [
-# 	{
-# 		"name": "zkteco_biometric_integration",
-# 		"logo": "/assets/zkteco_biometric_integration/logo.png",
-# 		"title": "Navari Zkteco Biometric Integration",
-# 		"route": "/zkteco_biometric_integration",
-# 		"has_permission": "zkteco_biometric_integration.api.permission.has_app_permission"
-# 	}
-# ]
+add_to_apps_screen = [
+    {
+        "name": "zkteco_biometric_integration",
+        "logo": "/assets/zkteco.svg",
+        "title": app_title,
+        "route": "/zkteco_biometric_integration",
+        "has_permission": "zkteco_biometric_integration.check_app_permission",
+    }
+]
 
 # Includes in <head>
 # ------------------
@@ -241,4 +241,3 @@ export_python_type_annotations = True
 # default_log_clearing_doctypes = {
 # 	"Logging DocType Name": 30  # days to retain logs
 # }
-

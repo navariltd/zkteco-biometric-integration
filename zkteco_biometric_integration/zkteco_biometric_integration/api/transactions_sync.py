@@ -105,7 +105,7 @@ def get_transactions(setting_doc: Document) -> list[dict]:
         frappe.log_error(frappe.get_traceback(), str(e))
 
 
-def create_employee_checkin(transaction: dict) -> None:
+def create_employee_checkin(transaction: dict) -> Document | None:
 
     validation_rules = [
         lambda: does_checkin_exist(transaction),
@@ -126,6 +126,7 @@ def create_employee_checkin(transaction: dict) -> None:
             }
         )
         employee_checkin.insert(ignore_permissions=True)
+
         return employee_checkin
 
     except Exception as e:
