@@ -126,7 +126,7 @@
   },
   {
    "default": "0",
-   "description": "utomatically manages user access based on activity: Disables the user profile upon Check-out and re-enables it upon Check-in.",
+   "description": "Automatically manages user access based on activity: Disables the user profile upon Check-out and re-enables it upon Check-in.",
    "fieldname": "enable_mandatory_checkin",
    "fieldtype": "Check",
    "label": "Enable Mandatory Checkin "
@@ -142,7 +142,7 @@
  "grid_page_length": 50,
  "index_web_pages_for_search": 1,
  "links": [],
- "modified": "2026-01-30 14:54:35.708007",
+ "modified": "2026-02-06 14:04:32.673659",
  "modified_by": "Administrator",
  "module": "Zkteco Biometric Integration",
  "name": "ZKTeco Biometric Settings",
