@@ -48,9 +48,13 @@ class ZKTecoBiometricSettings(Document):
         token: DF.Text | None
         url: DF.Data
         username: DF.Data
+    # end: auto-generated types
 
-    def before_insert(self):
+    _METHOD = "zkteco_biometric_integration.zkteco_biometric_integration.api.transactions_sync.handle_employee_checkin"
+
+    def after_insert(self):
         self.last_fetched_time = get_datetime()
+        self.create_scheduled_job()
 
     def validate(self):
         self.generate_token()
@@ -72,49 +76,49 @@ class ZKTecoBiometricSettings(Document):
             self.issued_at = get_datetime()
             self.expiry = self.issued_at + timedelta(days=1)
 
-    def manage_checkin_scheduler(self):
-        method = "zkteco_biometric_integration.zkteco_biometric_integration.api.transactions_sync.handle_employee_checkin"
+    def create_scheduled_job(self):
 
-        job = frappe.db.exists("Scheduled Job Type", {"method": method})
+        job = frappe.db.exists("Scheduled Job Type", {"method": self._METHOD})
+
+        if not job:
+            frappe.get_doc(
+                {
+                    "doctype": "Scheduled Job Type",
+                    "method": self._METHOD,
+                    "frequency": self.fetch_frequency,
+                    "stopped": 0,
+                    "create_log": 1,
+                    "cron_format": (
+                        self.cron_expression if self.fetch_frequency == "Cron" else ""
+                    ),
+                }
+            ).insert(ignore_permissions=True)
+
+    def manage_checkin_scheduler(self):
+
+        change_rules = [
+            lambda: self.has_value_changed("fetch_frequency"),
+            lambda: self.has_value_changed("cron_expression"),
+        ]
+
+        if any(change() for change in change_rules):
+            self.update_scheduler()
+
+    def update_scheduler(self):
 
         try:
-            if self.is_fetch_enabled:
-                if not job:
-                    scheduled_job = frappe.get_doc(
-                        {
-                            "doctype": "Scheduled Job Type",
-                            "method": method,
-                            "frequency": self.fetch_frequency,
-                            "stopped": 0,
-                            "create_log": 1,
-                            "cron_format": (
-                                self.cron_expression
-                                if self.fetch_frequency == "Cron"
-                                else None
-                            ),
-                        }
-                    )
-                    scheduled_job.insert(ignore_permissions=True)
 
-                frappe.db.set_value(
-                    "Scheduled Job Type",
-                    {"method": method},
-                    {
-                        "stopped": 0,
-                        "frequency": self.fetch_frequency,
-                        "cron_format": (
-                            self.cron_expression
-                            if self.fetch_frequency == "Cron"
-                            else None
-                        ),
-                    },
-                )
-
-            else:
-                if job:
-                    frappe.db.set_value(
-                        "Scheduled Job Type", {"method": method}, {"stopped": 1}
-                    )
+            frappe.db.set_value(
+                "Scheduled Job Type",
+                {"method": self._METHOD},
+                {
+                    "stopped": 0,
+                    "frequency": self.fetch_frequency,
+                    "cron_format": (
+                        self.cron_expression if self.fetch_frequency == "Cron" else ""
+                    ),
+                },
+            )
 
         except Exception as e:
             frappe.log_error(frappe.get_traceback(), str(e))
