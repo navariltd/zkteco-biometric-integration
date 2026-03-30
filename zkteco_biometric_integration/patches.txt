@@ -4,3 +4,4 @@
 
 [post_model_sync]
 # Patches added in this section will be executed after doctypes are migrated
+zkteco_biometric_integration.patches.update_scheduled_job
