@@ -9,6 +9,7 @@ from zkteco_biometric_integration.zkteco_biometric_integration.utils import (
 )
 from frappe.utils import get_datetime
 from frappe.integrations.utils import create_request_log
+from typing import Iterable
 
 
 @frappe.whitelist()
@@ -21,21 +22,31 @@ def handle_employee_checkin():
     for setting in biometric_settings:
         setting_doc = frappe.get_doc("ZKTeco Biometric Settings", setting.name)
 
-        transactions = get_transactions(setting_doc)
-        if not transactions:
-            return
+        try:
+            transactions = get_transactions(setting_doc)
+            if not transactions:
+                return
 
-        for txn in transactions:
-            if emp_checkin := create_employee_checkin(txn):
-                (
-                    manage_user(emp_checkin)
-                    if setting_doc.enable_mandatory_checkin
-                    else None
-                )
+            for txn in transactions:
+                if emp_checkin := create_employee_checkin(txn):
+                    (
+                        manage_user(emp_checkin)
+                        if setting_doc.enable_mandatory_checkin
+                        else None
+                    )
+            frappe.db.commit()
+        except Exception as e:
+            frappe.db.rollback()
+            frappe.log_error(
+                title="Employee Checkin Sync Error",
+                message=frappe.get_traceback(),
+                reference_doctype="ZKTeco Biometric Settings",
+                reference_name=setting_doc.name,
+            )
 
 
 @frappe.whitelist(allow_guest=True)
-def get_transactions(setting_doc: Document) -> list[dict]:
+def get_transactions(setting_doc: Document) -> Iterable[dict] | None:
 
     if setting_doc.is_token_expired():
         setting_doc.save()
@@ -68,36 +79,22 @@ def get_transactions(setting_doc: Document) -> list[dict]:
         reference_doctype="ZKTeco Biometric Settings",
         reference_docname=setting_doc.name,
     )
-    all_transactions = []
 
     try:
-        while url:
-            response = make_http_request(
-                method="GET", url=url, headers=headers, params=params
-            )
+        yield from _fetch_paginated_transactions(
+            setting_doc=setting_doc,
+            url=url,
+            headers=headers,
+            params=params,
+            integration_request_log=integration_request_log,
+            end_time=end_time,
+        )
 
-            if response and response.get("data"):
-                all_transactions.extend(response["data"])
-
-                url = response.get("next")
-                params = None
-            else:
-                break
-
-        if all_transactions:
-
-            frappe.db.set_value(
-                "ZKTeco Biometric Settings",
-                setting_doc.name,
-                "last_fetched_time",
-                end_time,
-            )
-
-            update_integration_request_log(
-                integration_request_log, status="Completed", response=response
-            )
-
-        return all_transactions
+        update_integration_request_log(
+            integration_request_log,
+            status="Completed",
+            response="Transactions fetched successfully",
+        )
     except Exception as e:
         update_integration_request_log(
             integration_request_log, status="Failed", error=str(e)
@@ -135,6 +132,37 @@ def create_employee_checkin(transaction: dict) -> Document | None:
         )
     finally:
         frappe.set_user("Guest")
+
+
+def _fetch_paginated_transactions(
+    setting_doc: Document,
+    url: str,
+    headers: dict,
+    params: dict,
+    end_time: str,
+) -> Iterable[dict]:
+    has_transactions = False
+    response = None
+
+    while url:
+        response = make_http_request(
+            method="GET", url=url, headers=headers, params=params
+        )
+
+        data = response.get("data") if response else None
+        if not data:
+            break
+        has_transactions = True
+
+        for transaction in data:
+            yield transaction
+
+        url = response.get("next")
+        params = None
+
+    if has_transactions:
+
+        setting_doc.db_set("last_fetched_time", end_time, update_modified=False)
 
 
 def activate_user(user_id: str, log_type: str) -> None:

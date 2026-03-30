@@ -11,15 +11,15 @@ app_license = "mit"
 # required_apps = []
 
 # Each item in the list will be shown as an app in the apps page
-add_to_apps_screen = [
-    {
-        "name": "zkteco_biometric_integration",
-        "logo": "/assets/zkteco.svg",
-        "title": app_title,
-        "route": "/zkteco_biometric_integration",
-        "has_permission": "zkteco_biometric_integration.check_app_permission",
-    }
-]
+# add_to_apps_screen = [
+#     {
+#         "name": "zkteco_biometric_integration",
+#         "logo": "/assets/zkteco.svg",
+#         "title": app_title,
+#         "route": "/zkteco_biometric_integration",
+#         "has_permission": "zkteco_biometric_integration.check_app_permission",
+#     }
+# ]
 
 # Includes in <head>
 # ------------------
@@ -148,23 +148,11 @@ add_to_apps_screen = [
 # Scheduled Tasks
 # ---------------
 
-# scheduler_events = {
-# 	"all": [
-# 		"zkteco_biometric_integration.tasks.all"
-# 	],
-# 	"daily": [
-# 		"zkteco_biometric_integration.tasks.daily"
-# 	],
-# 	"hourly": [
-# 		"zkteco_biometric_integration.tasks.hourly"
-# 	],
-# 	"weekly": [
-# 		"zkteco_biometric_integration.tasks.weekly"
-# 	],
-# 	"monthly": [
-# 		"zkteco_biometric_integration.tasks.monthly"
-# 	],
-# }
+scheduler_events = {
+    "all": [
+        "zkteco_biometric_integration.zkteco_biometric_integration.api.transactions_sync.handle_employee_checkin"
+    ],
+}
 
 # Testing
 # -------
