@@ -23,24 +23,8 @@ class ZKTecoBiometricSettings(Document):
     if TYPE_CHECKING:
         from frappe.types import DF
 
-        cron_expression: DF.Data | None
         enable_mandatory_checkin: DF.Check
         expiry: DF.Datetime | None
-        fetch_frequency: DF.Literal[
-            "All",
-            "Hourly",
-            "Hourly Long",
-            "Hourly Maintenance",
-            "Daily",
-            "Daily Long",
-            "Daily Maintenance",
-            "Weekly",
-            "Weekly Long",
-            "Monthly",
-            "Monthly Long",
-            "Cron",
-            "Yearly",
-        ]
         is_fetch_enabled: DF.Check
         issued_at: DF.Datetime | None
         last_fetched_time: DF.Datetime | None
@@ -50,15 +34,11 @@ class ZKTecoBiometricSettings(Document):
         username: DF.Data
     # end: auto-generated types
 
-    _METHOD = "zkteco_biometric_integration.zkteco_biometric_integration.api.transactions_sync.handle_employee_checkin"
-
     def after_insert(self):
         self.last_fetched_time = get_datetime()
-        self.create_scheduled_job()
 
     def validate(self):
         self.generate_token()
-        self.manage_checkin_scheduler()
 
     def generate_token(self) -> None:
 
@@ -67,7 +47,6 @@ class ZKTecoBiometricSettings(Document):
         endpoint_url = f"{self.url}/jwt-api-token-auth/"
         payload = {"username": self.username, "password": self.password}
 
-        self.url_path = "/jwt-api-token-auth/"
         response = make_http_request(
             method="POST", url=endpoint_url, headers=headers, payload=payload
         )
@@ -75,54 +54,6 @@ class ZKTecoBiometricSettings(Document):
             self.token = response["token"]
             self.issued_at = get_datetime()
             self.expiry = self.issued_at + timedelta(days=1)
-
-    def create_scheduled_job(self):
-
-        job = frappe.db.exists("Scheduled Job Type", {"method": self._METHOD})
-
-        if not job:
-            frappe.get_doc(
-                {
-                    "doctype": "Scheduled Job Type",
-                    "method": self._METHOD,
-                    "frequency": self.fetch_frequency,
-                    "stopped": 0,
-                    "create_log": 1,
-                    "cron_format": (
-                        self.cron_expression if self.fetch_frequency == "Cron" else ""
-                    ),
-                }
-            ).insert(ignore_permissions=True)
-
-    def manage_checkin_scheduler(self):
-
-        change_rules = [
-            lambda: self.has_value_changed("fetch_frequency"),
-            lambda: self.has_value_changed("cron_expression"),
-        ]
-
-        if any(change() for change in change_rules):
-            self.update_scheduler()
-
-    def update_scheduler(self):
-
-        try:
-
-            frappe.db.set_value(
-                "Scheduled Job Type",
-                {"method": self._METHOD},
-                {
-                    "stopped": 0,
-                    "frequency": self.fetch_frequency,
-                    "cron_format": (
-                        self.cron_expression if self.fetch_frequency == "Cron" else ""
-                    ),
-                },
-            )
-
-        except Exception as e:
-            frappe.log_error(frappe.get_traceback(), str(e))
-            frappe.throw("Problem managing check-in scheduler", str(e))
 
     def is_token_expired(self) -> bool:
         if not self.token or not self.expiry:
