@@ -11,15 +11,15 @@ app_license = "mit"
 # required_apps = []
 
 # Each item in the list will be shown as an app in the apps page
-add_to_apps_screen = [
-    {
-        "name": "zkteco_biometric_integration",
-        "logo": "/assets/zkteco.svg",
-        "title": app_title,
-        "route": "/zkteco_biometric_integration",
-        "has_permission": "zkteco_biometric_integration.check_app_permission",
-    }
-]
+# add_to_apps_screen = [
+#     {
+#         "name": "zkteco_biometric_integration",
+#         "logo": "/assets/zkteco.svg",
+#         "title": app_title,
+#         "route": "/zkteco_biometric_integration",
+#         "has_permission": "zkteco_biometric_integration.check_app_permission",
+#     }
+# ]
 
 # Includes in <head>
 # ------------------
