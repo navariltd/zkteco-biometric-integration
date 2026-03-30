@@ -148,23 +148,11 @@ add_to_apps_screen = [
 # Scheduled Tasks
 # ---------------
 
-# scheduler_events = {
-# 	"all": [
-# 		"zkteco_biometric_integration.tasks.all"
-# 	],
-# 	"daily": [
-# 		"zkteco_biometric_integration.tasks.daily"
-# 	],
-# 	"hourly": [
-# 		"zkteco_biometric_integration.tasks.hourly"
-# 	],
-# 	"weekly": [
-# 		"zkteco_biometric_integration.tasks.weekly"
-# 	],
-# 	"monthly": [
-# 		"zkteco_biometric_integration.tasks.monthly"
-# 	],
-# }
+scheduler_events = {
+    "all": [
+        "zkteco_biometric_integration.zkteco_biometric_integration.api.transactions_sync.handle_employee_checkin"
+    ],
+}
 
 # Testing
 # -------
