@@ -11,12 +11,10 @@ def execute():
 
 
 def get_current_frequency_settings() -> "Document":
-
 	return frappe.get_doc("ZKTeco Global")
 
 
 def update_scheduled_job() -> None:
-
 	setting_doc = get_current_frequency_settings()
 
 	new_frequency = setting_doc.cron_expression if setting_doc.is_cron else setting_doc.fetch_frequency
