@@ -16,7 +16,6 @@ from zkteco_biometric_integration.zkteco_biometric_integration.utils import (
 
 @frappe.whitelist()
 def handle_employee_checkin():
-
 	biometric_settings = frappe.get_all("ZKTeco Biometric Settings", filters={"is_fetch_enabled": 1})
 
 	for setting in biometric_settings:
@@ -43,7 +42,6 @@ def handle_employee_checkin():
 
 @frappe.whitelist(allow_guest=True)
 def get_transactions(setting_doc: Document) -> Iterable[dict] | None:
-
 	if setting_doc.is_token_expired():
 		setting_doc.save()
 
@@ -92,7 +90,6 @@ def get_transactions(setting_doc: Document) -> Iterable[dict] | None:
 
 
 def create_employee_checkin(transaction: dict) -> Document | None:
-
 	validation_rules = [
 		lambda: does_checkin_exist(transaction),
 		lambda: not does_employee_exist(transaction.get("emp_code")),
