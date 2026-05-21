@@ -42,7 +42,6 @@ class ZKTecoBiometricSettings(Document):
 		self.generate_token()
 
 	def generate_token(self) -> None:
-
 		headers = {"Content-Type": "application/json"}
 
 		endpoint_url = f"{self.url}/jwt-api-token-auth/"
