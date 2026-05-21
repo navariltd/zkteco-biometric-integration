@@ -86,7 +86,6 @@ def get_transactions(setting_doc: Document) -> Iterable[dict] | None:
             url=url,
             headers=headers,
             params=params,
-            integration_request_log=integration_request_log,
             end_time=end_time,
         )
 
