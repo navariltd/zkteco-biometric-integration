@@ -13,7 +13,6 @@ methodMap: dict[str, Callable[..., requests.Response]] = {
 
 
 def http_type_method(method: str) -> Callable[..., requests.Response]:
-
 	if method not in methodMap:
 		frappe.throw(f"HTTP Method {method} not supported")
 
@@ -27,7 +26,6 @@ def make_http_request(
 	payload: dict | None = None,
 	params: dict | None = None,
 ) -> dict | None:
-
 	http_method = http_type_method(method)
 
 	try:
@@ -47,7 +45,6 @@ def update_integration_request_log(
 	response: dict | None = None,
 	error: str | None = None,
 ) -> None:
-
 	if not integration_request_log:
 		return
 
@@ -79,7 +76,6 @@ def get_employees() -> list[dict]:
 
 
 def get_day_time_range() -> list[datetime]:
-
 	today = date.today()
 	start_of_day = datetime.combine(today, time())
 	end_of_day = datetime.combine(today, time(23, 59, 59))
