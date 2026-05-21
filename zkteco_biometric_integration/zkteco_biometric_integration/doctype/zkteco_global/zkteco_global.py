@@ -44,7 +44,6 @@ class ZKTecoGlobal(Document):
 		return self.fetch_frequency == "Cron"
 
 	def update_schedule_job(self) -> None:
-
 		frequency = self.cron_expression if self.is_cron else self.fetch_frequency
 
 		if job := frappe.db.exists("Scheduled Job Type", {"method": SCHEDULED_JOB_METHOD}):
