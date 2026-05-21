@@ -4,6 +4,22 @@ from frappe.model.document import Document
 
 TEST_EMPLOYEE_FIRST_NAME = "_Test ZKTeco Employee"
 TEST_USER_EMAIL = "_TestZKTecouser@gmail.com"
+TEST_COMPANY = "_Test ZKTeco Company"
+
+
+def create_company():
+    if not frappe.db.exists("Company", TEST_COMPANY):
+        company = frappe.get_doc(
+            {
+                "doctype": "Company",
+                "company_name": TEST_COMPANY,
+                "abbr": "_TZKC",
+                "default_currency": "USD",
+                "country": "United States",
+            }
+        )
+        company.insert(ignore_permissions=True)
+    return frappe.get_doc("Company", TEST_COMPANY)
 
 
 def create_settings():
@@ -27,6 +43,7 @@ def create_settings():
 
 
 def create_employee():
+    create_company()
     if not frappe.db.exists(
         "Employee",
         {
@@ -39,6 +56,7 @@ def create_employee():
                 "doctype": "Employee",
                 "employee_id": "EMP002",
                 "first_name": TEST_EMPLOYEE_FIRST_NAME,
+                "company": TEST_COMPANY,
                 "status": "Active",
                 "gender": "Male",
                 "date_of_joining": today(),
@@ -48,6 +66,7 @@ def create_employee():
         employee.insert(ignore_permissions=True)
 
         return employee
+    return frappe.get_doc("Employee", {"employee_id": "EMP002", "first_name": TEST_EMPLOYEE_FIRST_NAME})
 
 
 def create_user():
