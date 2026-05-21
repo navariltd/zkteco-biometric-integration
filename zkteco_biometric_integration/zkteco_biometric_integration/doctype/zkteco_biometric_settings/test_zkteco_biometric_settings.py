@@ -22,8 +22,8 @@ def create_settings():
                 "url": "http://localhost:8000",
             }
         )
-        settings.insert()
-        return settings
+        settings.insert(ignore_permissions=True)
+    return frappe.get_doc("ZKTeco Biometric Settings", "__Test ZKTeco Biometric Settings 1")
 
 
 class TestZKTecoBiometricSettings(FrappeTestCase):
@@ -31,20 +31,15 @@ class TestZKTecoBiometricSettings(FrappeTestCase):
     @patch(
         "zkteco_biometric_integration.zkteco_biometric_integration.doctype."
         "zkteco_biometric_settings.zkteco_biometric_settings."
-        "ZKTecoBiometricSettings.manage_checkin_scheduler"
-    )
-    @patch(
-        "zkteco_biometric_integration.zkteco_biometric_integration.doctype."
-        "zkteco_biometric_settings.zkteco_biometric_settings."
         "ZKTecoBiometricSettings.generate_token"
     )
-    def setUp(self, mock_generate_token, mock_manage_checkin_scheduler):
+    def setUp(self, mock_generate_token):
+        frappe.set_user("Administrator")
         mock_generate_token.return_value = None
-        mock_manage_checkin_scheduler.return_value = None
         self.settings = create_settings()
 
     def tearDown(self):
-        self.settings.delete()
+        self.settings.delete(ignore_permissions=True)
 
     def test_create_last_fetched_time(self):
         self.assertIsNotNone(self.settings.last_fetched_time)
