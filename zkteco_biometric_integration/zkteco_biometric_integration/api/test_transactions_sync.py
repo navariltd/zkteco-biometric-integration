@@ -60,7 +60,7 @@ class TestTransactionsSync(unittest.TestCase):
             ],
             "next": None,
         }
-        transactions = get_transactions(self.settings)
+        transactions = list(get_transactions(self.settings))
 
         self.assertEqual(len(transactions), 2)
         mock_make_http_request.assert_called_with(
