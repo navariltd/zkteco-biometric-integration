@@ -10,6 +10,7 @@ methodMap: dict[str, Callable[..., requests.Response]] = {
     "POST": requests.post,
 }
 
+REQUEST_TIMEOUT_SECONDS = 10
 
 def http_type_method(method: str) -> Callable[..., requests.Response]:
 
@@ -25,17 +26,27 @@ def make_http_request(
     headers: dict[str, str],
     payload: dict | None = None,
     params: dict | None = None,
+    timeout: int = REQUEST_TIMEOUT_SECONDS,
 ) -> dict | None:
 
     http_method = http_type_method(method)
 
     try:
-        response = http_method(url, headers=headers, json=payload, params=params)
+        response = http_method(
+            url, headers=headers, json=payload, params=params, timeout=timeout
+        )
 
         response.raise_for_status()
         return response.json()
+    
+    except requests.exceptions.Timeout:
+        frappe.log_error(
+            message=frappe.get_traceback(),
+            title="ZKTeco Biometric Integration: Request Timeout",
+        )
+        frappe.throw(f"HTTP Request to {url} timed out after {timeout} seconds")
 
-    except Exception as e:
+    except requests.exceptions.RequestException as e:
         frappe.log_error(
             message=frappe.get_traceback(), title="ZKTeco Biometric Integration"
         )
