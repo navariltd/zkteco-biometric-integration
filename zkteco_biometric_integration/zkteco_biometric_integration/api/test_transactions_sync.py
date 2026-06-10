@@ -60,7 +60,7 @@ class TestTransactionsSync(unittest.TestCase):
             ],
             "next": None,
         }
-        transactions = get_transactions(self.settings)
+        transactions = list(get_transactions(self.settings))
 
         self.assertEqual(len(transactions), 2)
         mock_make_http_request.assert_called_with(
@@ -130,3 +130,98 @@ class TestTransactionsSync(unittest.TestCase):
         status = frappe.db.get_value("User", employee.user_id, "enabled")
 
         self.assertEqual(status, 1)
+
+
+    @patch(
+        "zkteco_biometric_integration.zkteco_biometric_integration.api.transactions_sync.make_http_request"
+    )
+    @patch(
+        "zkteco_biometric_integration.zkteco_biometric_integration.doctype.zkteco_biometric_settings.zkteco_biometric_settings.ZKTecoBiometricSettings.is_token_expired"
+    )
+    def test_sync_creates_checkins_from_zkteco_payload(
+        self, mock_is_token_expired, mock_make_http_request
+    ):
+        """End-to-end: a realistic paginated ZKTeco /iclock/api/transactions/
+        payload results in Employee Checkin documents."""
+        mock_is_token_expired.return_value = False
+        self.settings.token = "test_token_123"
+
+        employee = create_employee()
+
+        # Mirrors the real BioTime transaction interface, across two pages
+        # to exercise the pagination loop.
+        page_2_url = f"{self.settings.url}/iclock/api/transactions/?page=2"
+        mock_make_http_request.side_effect = [
+            {
+                "count": 2,
+                "next": page_2_url,
+                "previous": None,
+                "data": [
+                    {
+                        "id": 101,
+                        "emp_code": employee.name,
+                        "punch_time": "2024-01-02 08:30:00",
+                        "punch_state": "0",
+                        "punch_state_display": "Check In",
+                        "verify_type": 1,
+                        "verify_type_display": "Fingerprint",
+                        "terminal_sn": "CJDE193560303",
+                        "terminal_alias": "Main Gate",
+                        "area_alias": "HQ",
+                        "upload_time": "2024-01-02 08:30:05",
+                    },
+                ],
+            },
+            {
+                "count": 2,
+                "next": None,
+                "previous": None,
+                "data": [
+                    {
+                        "id": 102,
+                        "emp_code": employee.name,
+                        "punch_time": "2024-01-02 17:45:00",
+                        "punch_state": "1",
+                        "punch_state_display": "Check Out",
+                        "verify_type": 1,
+                        "verify_type_display": "Fingerprint",
+                        "terminal_sn": "CJDE193560303",
+                        "terminal_alias": "Main Gate",
+                        "area_alias": "HQ",
+                        "upload_time": "2024-01-02 17:45:04",
+                    },
+                ],
+            },
+        ]
+
+        transactions = list(get_transactions(self.settings))
+        self.assertEqual(len(transactions), 2)
+
+        checkins = [create_employee_checkin(txn) for txn in transactions]
+        self.assertTrue(all(checkins))
+
+        # Verify against the DB, not just returned objects
+        in_punch = frappe.db.get_value(
+            "Employee Checkin",
+            {"employee": employee.name, "time": "2024-01-02 08:30:00"},
+            "log_type",
+        )
+        out_punch = frappe.db.get_value(
+            "Employee Checkin",
+            {"employee": employee.name, "time": "2024-01-02 17:45:00"},
+            "log_type",
+        )
+        self.assertEqual(in_punch, "IN")
+        self.assertEqual(out_punch, "OUT")
+
+        # Pagination was followed: first call with params, second to the next URL
+        self.assertEqual(mock_make_http_request.call_count, 2)
+        second_call_kwargs = mock_make_http_request.call_args_list[1].kwargs
+        self.assertEqual(second_call_kwargs["url"], page_2_url)
+        self.assertIsNone(second_call_kwargs["params"])
+
+        # Idempotency: re-running the same payload creates no duplicates
+        duplicate = create_employee_checkin(transactions[0])
+        self.assertIsNone(duplicate)
+        total = frappe.db.count("Employee Checkin", {"employee": employee.name})
+        self.assertEqual(total, 2)

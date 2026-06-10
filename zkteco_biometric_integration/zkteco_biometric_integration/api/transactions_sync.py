@@ -86,7 +86,6 @@ def get_transactions(setting_doc: Document) -> Iterable[dict] | None:
             url=url,
             headers=headers,
             params=params,
-            integration_request_log=integration_request_log,
             end_time=end_time,
         )
 
@@ -111,6 +110,8 @@ def create_employee_checkin(transaction: dict) -> Document | None:
 
     if any(rule() for rule in validation_rules):
         return
+    
+    current_user = frappe.session.user
 
     try:
         frappe.set_user("ZKTeco Biometric")
@@ -131,7 +132,7 @@ def create_employee_checkin(transaction: dict) -> Document | None:
             title="Employee Checkin Creation Error", message=frappe.get_traceback()
         )
     finally:
-        frappe.set_user("Guest")
+        frappe.set_user(current_user)
 
 
 def _fetch_paginated_transactions(
