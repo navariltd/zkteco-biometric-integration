@@ -36,7 +36,7 @@ class ZKTecoBiometricSettings(Document):
 	# end: auto-generated types
 
 	def after_insert(self):
-		self.last_fetched_time = get_datetime()
+		self.db_set("last_fetched_time", get_datetime())
 
 	def validate(self):
 		self.generate_token()
