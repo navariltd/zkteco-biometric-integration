@@ -40,7 +40,6 @@ def handle_employee_checkin():
 			)
 
 
-@frappe.whitelist(allow_guest=True)
 def get_transactions(setting_doc: Document) -> Iterable[dict] | None:
 	if setting_doc.is_token_expired():
 		setting_doc.save()
