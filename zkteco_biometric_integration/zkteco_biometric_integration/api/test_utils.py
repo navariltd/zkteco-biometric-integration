@@ -114,9 +114,7 @@ def cleanup_employee():
 
 def ensure_company() -> str:
 	if not frappe.db.exists("Warehouse Type", "Transit"):
-		frappe.get_doc({"doctype": "Warehouse Type", "name": "Transit"}).insert(
-			ignore_permissions=True
-		)
+		frappe.get_doc({"doctype": "Warehouse Type", "name": "Transit"}).insert(ignore_permissions=True)
 
 	if not frappe.db.exists("Company", TEST_COMPANY_NAME):
 		frappe.get_doc(
