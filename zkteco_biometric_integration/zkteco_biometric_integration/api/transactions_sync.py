@@ -23,8 +23,6 @@ def handle_employee_checkin():
 
 		try:
 			transactions = get_transactions(setting_doc)
-			if not transactions:
-				return
 
 			for txn in transactions:
 				if emp_checkin := create_employee_checkin(txn):
