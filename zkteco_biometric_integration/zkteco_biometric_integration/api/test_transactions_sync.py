@@ -91,6 +91,7 @@ class TestTransactionsSync(unittest.TestCase):
 			"id": 1,
 			"emp_code": employee.name,
 			"punch_time": "2024-01-01 09:00:00",
+			"punch_state_display": "Check In",
 		}
 
 		checkin = create_employee_checkin(transaction)
