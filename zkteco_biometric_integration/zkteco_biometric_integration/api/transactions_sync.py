@@ -1,189 +1,171 @@
+from collections.abc import Iterable
+
 import frappe
-from frappe.model.document import Document
-from zkteco_biometric_integration.zkteco_biometric_integration.utils import (
-    make_http_request,
-    update_integration_request_log,
-    map_checkin,
-    does_checkin_exist,
-    does_employee_exist,
-)
-from frappe.utils import get_datetime
 from frappe.integrations.utils import create_request_log
-from typing import Iterable
+from frappe.model.document import Document
+from frappe.utils import get_datetime
+
+from zkteco_biometric_integration.zkteco_biometric_integration.utils import (
+	does_checkin_exist,
+	does_employee_exist,
+	make_http_request,
+	map_checkin,
+	update_integration_request_log,
+)
 
 
 @frappe.whitelist()
 def handle_employee_checkin():
+	biometric_settings = frappe.get_all("ZKTeco Biometric Settings", filters={"is_fetch_enabled": 1})
 
-    biometric_settings = frappe.get_all(
-        "ZKTeco Biometric Settings", filters={"is_fetch_enabled": 1}
-    )
+	for setting in biometric_settings:
+		setting_doc = frappe.get_doc("ZKTeco Biometric Settings", setting.name)
 
-    for setting in biometric_settings:
-        setting_doc = frappe.get_doc("ZKTeco Biometric Settings", setting.name)
+		try:
+			transactions = get_transactions(setting_doc)
 
-        try:
-            transactions = get_transactions(setting_doc)
-            if not transactions:
-                return
-
-            for txn in transactions:
-                if emp_checkin := create_employee_checkin(txn):
-                    (
-                        manage_user(emp_checkin)
-                        if setting_doc.enable_mandatory_checkin
-                        else None
-                    )
-            frappe.db.commit()
-        except Exception as e:
-            frappe.db.rollback()
-            frappe.log_error(
-                title="Employee Checkin Sync Error",
-                message=frappe.get_traceback(),
-                reference_doctype="ZKTeco Biometric Settings",
-                reference_name=setting_doc.name,
-            )
+			for txn in transactions:
+				if emp_checkin := create_employee_checkin(txn):
+					(manage_user(emp_checkin) if setting_doc.enable_mandatory_checkin else None)
+			frappe.db.commit()
+		except Exception:
+			frappe.db.rollback()
+			frappe.log_error(
+				title="Employee Checkin Sync Error",
+				message=frappe.get_traceback(),
+				reference_doctype="ZKTeco Biometric Settings",
+				reference_name=setting_doc.name,
+			)
 
 
-@frappe.whitelist(allow_guest=True)
 def get_transactions(setting_doc: Document) -> Iterable[dict] | None:
+	if setting_doc.is_token_expired():
+		setting_doc.save()
 
-    if setting_doc.is_token_expired():
-        setting_doc.save()
+	headers = {
+		"Content-Type": "application/json",
+		"Authorization": f"JWT {setting_doc.token}",
+	}
 
-    headers = {
-        "Content-Type": "application/json",
-        "Authorization": f"JWT {setting_doc.token}",
-    }
+	url = f"{setting_doc.url}/iclock/api/transactions/"
 
-    url = f"{setting_doc.url}/iclock/api/transactions/"
+	start_time = setting_doc.last_fetched_time if setting_doc.last_fetched_time else get_datetime()
+	end_time = get_datetime()
 
-    start_time = (
-        setting_doc.last_fetched_time
-        if setting_doc.last_fetched_time
-        else get_datetime()
-    )
-    end_time = get_datetime()
+	params = {
+		"start_time": (start_time.strftime("%Y-%m-%d %H:%M:%S")),
+		"end_time": (end_time.strftime("%Y-%m-%d %H:%M:%S")),
+	}
 
-    params = {
-        "start_time": (start_time.strftime("%Y-%m-%d %H:%M:%S")),
-        "end_time": (end_time.strftime("%Y-%m-%d %H:%M:%S")),
-    }
+	integration_request_log = create_request_log(
+		data=params,
+		integration_type="Remote",
+		service_name="ZKTeco Biometric Integration",
+		request_headers=headers,
+		request_url=url,
+		reference_doctype="ZKTeco Biometric Settings",
+		reference_docname=setting_doc.name,
+	)
 
-    integration_request_log = create_request_log(
-        data=params,
-        integration_type="Remote",
-        service_name="ZKTeco Biometric Integration",
-        request_headers=headers,
-        request_url=url,
-        reference_doctype="ZKTeco Biometric Settings",
-        reference_docname=setting_doc.name,
-    )
+	try:
+		yield from _fetch_paginated_transactions(
+			setting_doc=setting_doc,
+			url=url,
+			headers=headers,
+			params=params,
+			end_time=end_time,
+		)
 
-    try:
-        yield from _fetch_paginated_transactions(
-            setting_doc=setting_doc,
-            url=url,
-            headers=headers,
-            params=params,
-            end_time=end_time,
-        )
-
-        update_integration_request_log(
-            integration_request_log,
-            status="Completed",
-            response="Transactions fetched successfully",
-        )
-    except Exception as e:
-        update_integration_request_log(
-            integration_request_log, status="Failed", error=str(e)
-        )
-        frappe.log_error(frappe.get_traceback(), str(e))
+		update_integration_request_log(
+			integration_request_log,
+			status="Completed",
+			response="Transactions fetched successfully",
+		)
+	except Exception as e:
+		update_integration_request_log(integration_request_log, status="Failed", error=str(e))
+		frappe.log_error(frappe.get_traceback(), str(e))
 
 
 def create_employee_checkin(transaction: dict) -> Document | None:
+	validation_rules = [
+		lambda: does_checkin_exist(transaction),
+		lambda: not does_employee_exist(transaction.get("emp_code")),
+	]
 
-    validation_rules = [
-        lambda: does_checkin_exist(transaction),
-        lambda: not does_employee_exist(transaction.get("emp_code")),
-    ]
+	if any(rule() for rule in validation_rules):
+		return
 
-    if any(rule() for rule in validation_rules):
-        return
-    
-    current_user = frappe.session.user
+	current_user = frappe.session.user
 
-    try:
-        frappe.set_user("ZKTeco Biometric")
-        employee_checkin = frappe.get_doc(
-            {
-                "doctype": "Employee Checkin",
-                "employee": transaction.get("emp_code"),
-                "time": transaction.get("punch_time"),
-                "log_type": map_checkin(transaction.get("punch_state_display")),
-            }
-        )
-        employee_checkin.insert(ignore_permissions=True)
+	try:
+		frappe.set_user("ZKTeco Biometric")
 
-        return employee_checkin
+		log_type = map_checkin(transaction.get("punch_state_display"))
 
-    except Exception as e:
-        frappe.log_error(
-            title="Employee Checkin Creation Error", message=frappe.get_traceback()
-        )
-    finally:
-        frappe.set_user(current_user)
+		if not log_type:
+			return None
+
+		employee_checkin = frappe.get_doc(
+			{
+				"doctype": "Employee Checkin",
+				"employee": transaction.get("emp_code"),
+				"time": transaction.get("punch_time"),
+				"log_type": log_type,
+			}
+		)
+		employee_checkin.insert(ignore_permissions=True)
+
+		return employee_checkin
+
+	except Exception:
+		frappe.log_error(title="Employee Checkin Creation Error", message=frappe.get_traceback())
+	finally:
+		frappe.set_user(current_user)
 
 
 def _fetch_paginated_transactions(
-    setting_doc: Document,
-    url: str,
-    headers: dict,
-    params: dict,
-    end_time: str,
+	setting_doc: Document,
+	url: str,
+	headers: dict,
+	params: dict,
+	end_time: str,
 ) -> Iterable[dict]:
-    has_transactions = False
-    response = None
+	has_transactions = False
+	response = None
 
-    while url:
-        response = make_http_request(
-            method="GET", url=url, headers=headers, params=params
-        )
+	while url:
+		response = make_http_request(method="GET", url=url, headers=headers, params=params)
 
-        data = response.get("data") if response else None
-        if not data:
-            break
-        has_transactions = True
+		data = response.get("data") if response else None
+		if not data:
+			break
+		has_transactions = True
 
-        for transaction in data:
-            yield transaction
+		yield from data
 
-        url = response.get("next")
-        params = None
+		url = response.get("next")
+		params = None
 
-    if has_transactions:
-
-        setting_doc.db_set("last_fetched_time", end_time, update_modified=False)
+	if has_transactions:
+		setting_doc.db_set("last_fetched_time", end_time, update_modified=False)
 
 
 def activate_user(user_id: str, log_type: str) -> None:
-    try:
-        if "System Manager" in frappe.get_roles(user_id):
-            return
+	try:
+		if "System Manager" in frappe.get_roles(user_id):
+			return
 
-        should_enable = log_type == "IN"
+		should_enable = log_type == "IN"
 
-        frappe.db.set_value(
-            "User", user_id, "enabled", int(should_enable), update_modified=False
-        )
+		frappe.db.set_value("User", user_id, "enabled", int(should_enable), update_modified=False)
 
-    except Exception:
-        frappe.log_error(message=frappe.get_traceback(), title="User Activation Error")
+	except Exception:
+		frappe.log_error(message=frappe.get_traceback(), title="User Activation Error")
 
 
 def manage_user(employee_checkin: Document):
-    if frappe.db.exists("Employee", employee_checkin.employee):
-        employee = frappe.get_doc("Employee", employee_checkin.employee)
+	if frappe.db.exists("Employee", employee_checkin.employee):
+		employee = frappe.get_doc("Employee", employee_checkin.employee)
 
-        if employee.user_id:
-            activate_user(employee.user_id, employee_checkin.log_type)
+		if employee.user_id:
+			activate_user(employee.user_id, employee_checkin.log_type)
