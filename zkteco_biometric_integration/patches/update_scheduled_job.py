@@ -24,16 +24,15 @@ def update_scheduled_job() -> None:
 
 	if job_doc_name := frappe.db.exists("Scheduled Job Type", {"method": SCHEDULED_JOB_METHOD}):
 		job_doc = frappe.get_doc("Scheduled Job Type", job_doc_name)
-		if (
- 			job_doc.frequency == new_frequency
- 			and (not setting_doc.is_cron or job_doc.cron_format == (setting_doc.cron_expression or ""))
- 		):
+		if job_doc.frequency == new_frequency and (
+			not setting_doc.is_cron or job_doc.cron_format == (setting_doc.cron_expression or "")
+		):
 			return
-		
+
 		job_doc.db_set(
- 			{
- 				"frequency": new_frequency,
- 				"cron_format": setting_doc.cron_expression if setting_doc.is_cron else "",
- 			},
- 			update_modified=False,
- 		)
+			{
+				"frequency": new_frequency,
+				"cron_format": setting_doc.cron_expression if setting_doc.is_cron else "",
+			},
+			update_modified=False,
+		)

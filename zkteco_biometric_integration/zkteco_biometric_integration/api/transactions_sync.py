@@ -104,7 +104,7 @@ def create_employee_checkin(transaction: dict) -> Document | None:
 
 		if not log_type:
 			return None
-		
+
 		employee_checkin = frappe.get_doc(
 			{
 				"doctype": "Employee Checkin",
