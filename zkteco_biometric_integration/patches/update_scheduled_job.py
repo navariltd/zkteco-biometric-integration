@@ -14,7 +14,7 @@ def execute():
 
 
 def get_current_frequency_settings() -> ZKTecoGlobal:
-	return frappe.get_doc("ZKTeco Global")
+	return frappe.get_cached_doc("ZKTeco Global")
 
 
 def update_scheduled_job() -> None:
