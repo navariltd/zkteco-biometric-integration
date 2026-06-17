@@ -99,12 +99,18 @@ def create_employee_checkin(transaction: dict) -> Document | None:
 
 	try:
 		frappe.set_user("ZKTeco Biometric")
+
+		log_type = map_checkin(transaction.get("punch_state_display"))
+
+		if not log_type:
+			return None
+		
 		employee_checkin = frappe.get_doc(
 			{
 				"doctype": "Employee Checkin",
 				"employee": transaction.get("emp_code"),
 				"time": transaction.get("punch_time"),
-				"log_type": map_checkin(transaction.get("punch_state_display")),
+				"log_type": log_type,
 			}
 		)
 		employee_checkin.insert(ignore_permissions=True)
