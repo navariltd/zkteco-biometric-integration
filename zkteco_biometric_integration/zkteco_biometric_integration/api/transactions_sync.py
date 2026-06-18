@@ -120,7 +120,7 @@ def create_employee_checkin(transaction: dict) -> Document | None:
 	except Exception:
 		frappe.log_error(title="Employee Checkin Creation Error", message=frappe.get_traceback())
 	finally:
-		frappe.set_user(current_user) # nosemgrep
+		frappe.set_user(current_user)  # nosemgrep
 
 
 def _fetch_paginated_transactions(
