@@ -1,0 +1,17 @@
+{
+ "doctype": "Dock",
+ "name": "zkteco_biometric_integration",
+ "app": "zkteco_biometric_integration",
+ "standard": 1,
+ "user": "",
+ "items": [
+  {
+   "title": "ZKTeco",
+   "icon": "fingerprint-pattern",
+   "link_type": "Sidebar",
+   "link_to": "ZKTeco",
+   "hidden": 0,
+   "added": 0
+  }
+ ]
+}

@@ -14,7 +14,7 @@ app_license = "mit"
 add_to_apps_screen = [
     {
         "name": app_name,
-        "logo": "/assets/zkteco_biometric_integration/assets/zkteco.svg",
+        "logo": "/assets/zkteco_biometric_integration/assets/zkteco.webp",
         "title": "ZKTeco",
         "route": "/desk/zkteco/zkteco-biometric-settings",
         "has_permission": "zkteco_biometric_integration.check_app_permission",
